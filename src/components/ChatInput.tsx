@@ -56,7 +56,8 @@ export default function ChatInput({
           onKeyDown={handleKey}
           placeholder="Ask the companion…"
           rows={1}
-          className="min-h-[2.5rem] flex-1 resize-none rounded-md border border-[var(--color-rule)] bg-[var(--color-surface)] px-3 py-2 text-[15px] leading-6 text-[var(--color-ink)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)]"
+          /* 16px font-size avoids iOS Safari's auto-zoom on focus. */
+          className="min-h-[2.5rem] flex-1 resize-none rounded-md border border-[var(--color-rule)] bg-[var(--color-surface)] px-3 py-2 text-base leading-6 text-[var(--color-ink)] outline-none placeholder:text-[var(--color-muted)] focus:border-[var(--color-accent)]"
         />
         {streaming ? (
           <button

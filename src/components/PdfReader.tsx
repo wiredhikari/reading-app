@@ -11,12 +11,26 @@ interface Props {
   onSelection: (text: string) => void;
 }
 
+/**
+ * Scale bounds. Fit-to-width can go below the manual minimum on tiny screens
+ * so the PDF always fits — that's why the minimums differ.
+ */
+const MIN_MANUAL_SCALE = 0.5;
+const MIN_FIT_SCALE = 0.25;
+const MAX_SCALE = 3;
+
 export default function PdfReader({ fileBuffer, onLocationChange, onSelection }: Props) {
   const [doc, setDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
   const [pageNum, setPageNum] = useState(1);
-  const [scale, setScale] = useState(1.2);
+  const [scale, setScale] = useState(1.0);
+  // When true, scale auto-adjusts to container width on mount + resize.
+  // Flipped off once the user manually zooms; flipped back on with "Fit".
+  const [fitWidth, setFitWidth] = useState(true);
+  // Native width (at scale 1) of the current page — drives fit calculation.
+  const [pageNativeWidth, setPageNativeWidth] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textLayerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const renderTaskRef = useRef<pdfjsLib.RenderTask | null>(null);
 
   // Load the PDF
@@ -46,6 +60,11 @@ export default function PdfReader({ fileBuffer, onLocationChange, onSelection }:
       const page = await doc.getPage(pageNum);
       if (cancelled) return;
       const viewport = page.getViewport({ scale });
+      // Record native width so the fit-to-width effect can compute scale.
+      // Using native viewport (scale 1) keeps the math simple.
+      const nativeWidth = page.getViewport({ scale: 1 }).width;
+      if (nativeWidth !== pageNativeWidth) setPageNativeWidth(nativeWidth);
+
       const canvas = canvasRef.current;
       const textLayer = textLayerRef.current;
       if (!canvas || !textLayer) return;
@@ -111,7 +130,32 @@ export default function PdfReader({ fileBuffer, onLocationChange, onSelection }:
     return () => {
       cancelled = true;
     };
-  }, [doc, pageNum, scale, onLocationChange]);
+  }, [doc, pageNum, scale, onLocationChange, pageNativeWidth]);
+
+  // Fit-to-width: watch the scroll container and recompute scale so the page
+  // exactly spans the available width. Accounts for the container's horizontal
+  // padding. No-op when the user has manually zoomed.
+  useEffect(() => {
+    if (!fitWidth || !pageNativeWidth) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    const compute = () => {
+      const cs = window.getComputedStyle(container);
+      const padL = parseFloat(cs.paddingLeft) || 0;
+      const padR = parseFloat(cs.paddingRight) || 0;
+      const avail = Math.max(100, container.clientWidth - padL - padR);
+      const next = Math.max(MIN_FIT_SCALE, Math.min(MAX_SCALE, avail / pageNativeWidth));
+      // Round to 2 decimals to avoid sub-pixel churn from tiny ResizeObserver deltas.
+      const rounded = Math.round(next * 100) / 100;
+      setScale((prev) => (Math.abs(prev - rounded) > 0.01 ? rounded : prev));
+    };
+
+    compute();
+    const ro = new ResizeObserver(compute);
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [fitWidth, pageNativeWidth]);
 
   // Capture selection inside this pane
   useEffect(() => {
@@ -134,13 +178,22 @@ export default function PdfReader({ fileBuffer, onLocationChange, onSelection }:
     return <div className="p-8 text-sm text-[var(--color-muted)]">Loading PDF…</div>;
   }
 
+  function zoom(delta: number) {
+    setFitWidth(false);
+    setScale((s) => {
+      const next = +(s + delta).toFixed(2);
+      return Math.max(MIN_MANUAL_SCALE, Math.min(MAX_SCALE, next));
+    });
+  }
+
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-2 border-b border-[var(--color-rule)] bg-[var(--color-paper)] px-3 py-2 text-sm sm:px-4">
+      {/* Toolbar — compact on narrow screens. */}
+      <div className="flex items-center gap-1.5 border-b border-[var(--color-rule)] bg-[var(--color-paper)] px-2 py-1.5 text-sm sm:gap-2 sm:px-4 sm:py-2">
         <PillButton onClick={() => setPageNum((p) => Math.max(1, p - 1))} disabled={pageNum <= 1}>
           ←
         </PillButton>
-        <span className="px-1 tabular-nums text-[var(--color-muted)]">
+        <span className="px-1 text-xs tabular-nums text-[var(--color-muted)] sm:text-sm">
           {pageNum} <span className="text-[var(--color-rule-strong)]">/</span> {doc.numPages}
         </span>
         <PillButton
@@ -149,13 +202,26 @@ export default function PdfReader({ fileBuffer, onLocationChange, onSelection }:
         >
           →
         </PillButton>
-        <div className="ml-auto flex items-center gap-1.5 text-[var(--color-muted)]">
-          <PillButton onClick={() => setScale((s) => Math.max(0.5, +(s - 0.1).toFixed(2)))}>−</PillButton>
-          <span className="w-10 text-center text-xs tabular-nums">{Math.round(scale * 100)}%</span>
-          <PillButton onClick={() => setScale((s) => Math.min(3, +(s + 0.1).toFixed(2)))}>+</PillButton>
+        <div className="ml-auto flex items-center gap-1 text-[var(--color-muted)] sm:gap-1.5">
+          <PillButton onClick={() => zoom(-0.1)}>−</PillButton>
+          {/* Hide the raw percentage on narrow screens — show a Fit button instead. */}
+          <span className="hidden w-10 text-center text-xs tabular-nums sm:inline">
+            {Math.round(scale * 100)}%
+          </span>
+          <PillButton onClick={() => zoom(0.1)}>+</PillButton>
+          <PillButton
+            onClick={() => setFitWidth(true)}
+            disabled={fitWidth}
+            title="Fit to width"
+          >
+            Fit
+          </PillButton>
         </div>
       </div>
-      <div className="flex-1 overflow-auto bg-[var(--color-surface-2)] p-3 sm:p-6">
+      <div
+        ref={containerRef}
+        className="flex-1 overflow-auto bg-[var(--color-surface-2)] p-2 sm:p-6"
+      >
         <div
           className="relative mx-auto inline-block rounded-md bg-white"
           style={{ filter: 'var(--pdf-filter)', boxShadow: 'var(--shadow-card)' }}
@@ -176,15 +242,18 @@ function PillButton({
   children,
   onClick,
   disabled,
+  title,
 }: {
   children: React.ReactNode;
   onClick: () => void;
   disabled?: boolean;
+  title?: string;
 }) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
+      title={title}
       className="rounded-full border border-[var(--color-rule)] bg-[var(--color-surface)] px-2.5 py-1 text-[var(--color-ink)] transition-colors hover:border-[var(--color-accent)] disabled:opacity-40 disabled:hover:border-[var(--color-rule)]"
     >
       {children}

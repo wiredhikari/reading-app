@@ -98,14 +98,24 @@ export default function App() {
       <main className="flex-1 overflow-hidden">
         {isMobile ? (
           !file ? (
-            <div className="h-full w-full">{reader}</div>
+            // Landing screen: no chat pane below, so we need to respect the
+            // iOS home indicator ourselves. The reader pane takes care of its
+            // own bottom when a file is loaded (ChatInput has safe-bottom).
+            <div
+              className="h-full w-full"
+              style={{ paddingBottom: 'var(--safe-bottom)' }}
+            >
+              {reader}
+            </div>
           ) : (
-            // Mobile: reader on top, companion below. Reader takes ~62% of
-            // the viewport, chat takes the rest. Each pane has its own scroll.
+            // Mobile reader+chat split. 58/42 gives the reader enough room to
+            // breathe while keeping the chat large enough to type comfortably.
+            // When the keyboard opens, 100dvh shrinks and the reader compresses,
+            // which is the right tradeoff — chat is what's active.
             <div className="flex h-full w-full flex-col">
-              <div className="min-h-0 flex-[0.62] overflow-hidden">{reader}</div>
+              <div className="min-h-0 flex-[0.58] overflow-hidden">{reader}</div>
               <div className="h-px shrink-0 bg-[var(--color-rule)]" />
-              <div className="min-h-0 flex-[0.38] overflow-hidden">{chat}</div>
+              <div className="min-h-0 flex-[0.42] overflow-hidden">{chat}</div>
             </div>
           )
         ) : (
