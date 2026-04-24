@@ -1,0 +1,13 @@
+node_modules
+dist
+.env
+.env.local
+*.log
+.DS_Store
+
+# Build artifacts
+*.tsbuildinfo
+public/icons/_tmp_*
+
+# Local planning scratchpad
+HOSTING_PLAN.md

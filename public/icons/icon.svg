@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Reading Companion">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1c1612"/>
+      <stop offset="100%" stop-color="#2a1f17"/>
+    </linearGradient>
+    <linearGradient id="ink" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#dba074"/>
+      <stop offset="100%" stop-color="#b8794a"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- subtle inner glow -->
+  <rect x="16" y="16" width="480" height="480" rx="100" fill="none" stroke="#3a2c20" stroke-width="2"/>
+  <!-- Serif "R" -->
+  <path d="M148 132 h130 c52 0 88 30 88 78 0 38 -22 64 -58 73 l74 117 h-72 l-66 -107 h-40 v107 h-56 z m56 122 h66 c22 0 36 -11 36 -31 0 -20 -14 -31 -36 -31 h-66 z" fill="url(#ink)"/>
+  <!-- Companion dot -->
+  <circle cx="378" cy="372" r="22" fill="#b8794a" opacity="0.85"/>
+</svg>
