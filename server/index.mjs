@@ -1,4 +1,4 @@
-import { config, warnIfMissingKey } from './config.mjs';
+import { config, warnIfMissingKey, checkAuthConfig } from './config.mjs';
 import { createApp } from './app.mjs';
 
 // Don't let an out-of-band rejection (e.g. an aborted SDK request) kill the process.
@@ -9,6 +9,7 @@ process.on('unhandledRejection', (reason) => {
 });
 
 warnIfMissingKey();
+checkAuthConfig();
 
 const app = createApp();
 
