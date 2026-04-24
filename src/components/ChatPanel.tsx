@@ -3,6 +3,11 @@ import { useChat } from '../lib/useChat';
 import type { ReadingContext } from '../lib/systemPrompt';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
+import {
+  clearChatHistory,
+  getChatHistory,
+  postChatMessage,
+} from '../lib/persistence';
 
 interface Props {
   readingContext: ReadingContext;
@@ -10,6 +15,12 @@ interface Props {
   onSelectionUsed: () => void;
   onAssistantTick?: () => void;
   isMobile?: boolean;
+  /**
+   * When set, chat history is loaded from and saved to the server under this
+   * book id. Null means local-only: the chat still works, it just doesn't
+   * persist across sessions.
+   */
+  bookId?: number | null;
 }
 
 export default function ChatPanel({
@@ -18,10 +29,61 @@ export default function ChatPanel({
   onSelectionUsed,
   onAssistantTick,
   isMobile,
+  bookId,
 }: Props) {
-  const { messages, streaming, error, send, cancel } = useChat(onAssistantTick);
+  // When we have a book id, every committed message (user or assistant) is
+  // written to the server. Failures are logged but not surfaced — persistence
+  // is best-effort; the reader shouldn't know or care if the save hiccupped.
+  const bookIdRef = useRef<number | null>(bookId ?? null);
+  bookIdRef.current = bookId ?? null;
+
+  const { messages, streaming, error, send, cancel, setInitial, clear } = useChat({
+    onAssistantTick,
+    onMessageAppended: (role, content) => {
+      const id = bookIdRef.current;
+      if (!id) return;
+      postChatMessage(id, role, content).catch((err: unknown) => {
+        console.warn('[chat] save failed:', err);
+      });
+    },
+  });
+
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  // Load persisted history whenever the bookId changes. A null id means we
+  // switched to a state without persistence — clear the pane so stale
+  // messages from a prior book don't linger.
+  useEffect(() => {
+    let cancelled = false;
+    if (!bookId) {
+      setInitial([]);
+      setLoadingHistory(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+    setLoadingHistory(true);
+    getChatHistory(bookId)
+      .then((rows) => {
+        if (cancelled) return;
+        setInitial(rows.map((r) => ({ role: r.role, content: r.content })));
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.warn('[chat] load history failed:', err);
+        // Fall back to an empty conversation — the stream endpoint still works.
+        setInitial([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingHistory(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookId]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -38,6 +100,19 @@ export default function ChatPanel({
     await send({ text, readingContext, selection });
   }
 
+  async function clearConversation() {
+    if (streaming) cancel();
+    const id = bookIdRef.current;
+    clear();
+    if (id) {
+      try {
+        await clearChatHistory(id);
+      } catch (err) {
+        console.warn('[chat] clear history failed:', err);
+      }
+    }
+  }
+
   const headerLabel =
     readingContext.format === 'none'
       ? 'No text loaded'
@@ -46,25 +121,38 @@ export default function ChatPanel({
   return (
     <div className="flex h-full flex-col bg-[var(--color-paper)]">
       <header className="flex items-center justify-between border-b border-[var(--color-rule)] px-5 py-3">
-        <div>
+        <div className="min-w-0">
           <div className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted)]">
             Companion
           </div>
           <div className="mt-0.5 truncate text-sm text-[var(--color-ink)]">{headerLabel}</div>
         </div>
-        {streaming && (
-          <span className="flex items-center gap-1.5 text-[11px] text-[var(--color-muted)]">
-            <span className="relative inline-flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--color-accent)] opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--color-accent)]" />
+        <div className="flex items-center gap-3">
+          {streaming && (
+            <span className="flex items-center gap-1.5 text-[11px] text-[var(--color-muted)]">
+              <span className="relative inline-flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--color-accent)] opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--color-accent)]" />
+              </span>
+              thinking
             </span>
-            thinking
-          </span>
-        )}
+          )}
+          {messages.length > 0 && !streaming && (
+            <button
+              onClick={clearConversation}
+              className="text-[11px] uppercase tracking-[0.14em] text-[var(--color-muted)] transition-colors hover:text-[var(--color-ink)]"
+              title={bookId ? 'Clear this conversation (deletes saved history)' : 'Clear this conversation'}
+            >
+              Clear
+            </button>
+          )}
+        </div>
       </header>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-5">
-        {messages.length === 0 ? (
+        {loadingHistory ? (
+          <div className="pt-6 text-center text-xs text-[var(--color-muted)]">Loading conversation…</div>
+        ) : messages.length === 0 ? (
           <EmptyState />
         ) : (
           <div className="space-y-5">

@@ -1,24 +1,39 @@
 import { useEffect, useState, useCallback } from 'react';
 
-export type Theme = 'light' | 'dark';
+// Three-way theme:
+//   light  — airy cream, everyday app feel
+//   sepia  — warmer, deeper paper — reading mode
+//   dark   — night reading; low-glow charcoal
+export type Theme = 'light' | 'sepia' | 'dark';
 const STORAGE_KEY = 'reading-companion:theme';
+
+// Order for the cycle toggle — matches sun → paper → moon metaphor.
+const THEME_CYCLE: Theme[] = ['light', 'sepia', 'dark'];
+
+function isTheme(v: unknown): v is Theme {
+  return v === 'light' || v === 'sepia' || v === 'dark';
+}
 
 function readInitialTheme(): Theme {
   if (typeof window === 'undefined') return 'light';
   const stored = window.localStorage.getItem(STORAGE_KEY);
-  if (stored === 'light' || stored === 'dark') return stored;
+  if (isTheme(stored)) return stored;
   const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
   return prefersDark ? 'dark' : 'light';
 }
 
+// iOS status bar / Android chrome — keep this in sync with --color-paper.
+const THEME_META_COLOR: Record<Theme, string> = {
+  light: '#f4ede0',
+  sepia: '#ecdec2',
+  dark: '#14141a',
+};
+
 function applyTheme(theme: Theme) {
   if (typeof document === 'undefined') return;
   document.documentElement.setAttribute('data-theme', theme);
-  // theme-color meta — used by iOS Safari status bar / Android chrome
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) {
-    meta.setAttribute('content', theme === 'dark' ? '#14141a' : '#fbfaf6');
-  }
+  if (meta) meta.setAttribute('content', THEME_META_COLOR[theme]);
 }
 
 // Apply once synchronously at module load so we don't flash the wrong theme.
@@ -36,7 +51,7 @@ export function useTheme(): { theme: Theme; toggle: () => void; setTheme: (t: Th
   // Keep state and DOM in sync if some other tab changes it.
   useEffect(() => {
     function onStorage(e: StorageEvent) {
-      if (e.key === STORAGE_KEY && (e.newValue === 'light' || e.newValue === 'dark')) {
+      if (e.key === STORAGE_KEY && isTheme(e.newValue)) {
         setThemeState(e.newValue);
         applyTheme(e.newValue);
       }
@@ -55,8 +70,11 @@ export function useTheme(): { theme: Theme; toggle: () => void; setTheme: (t: Th
     }
   }, []);
 
+  // Cycle light → sepia → dark → light. One-tap toggle with a changing icon.
   const toggle = useCallback(() => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
+    const idx = THEME_CYCLE.indexOf(theme);
+    const next = THEME_CYCLE[(idx + 1) % THEME_CYCLE.length];
+    setTheme(next);
   }, [theme, setTheme]);
 
   return { theme, toggle, setTheme };

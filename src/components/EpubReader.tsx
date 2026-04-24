@@ -1,13 +1,26 @@
 import { useEffect, useRef, useState } from 'react';
 import ePub, { type Book, type Rendition, type NavItem } from 'epubjs';
 import { useTheme } from '../lib/theme';
+import {
+  type Typography,
+  FONT_FAMILY_STACK,
+  readTypography,
+  writeTypography,
+} from '../lib/epubTypography';
+import TypographyMenu from './TypographyMenu';
 
 interface Props {
   fileBuffer: ArrayBuffer;
   onLocationChange: (location: string, visibleText: string, meta: { title?: string; author?: string }) => void;
   onSelection: (text: string) => void;
+  /** Opaque key from a prior session — for EPUB this is the CFI. */
+  initialRestoreKey?: string | null;
+  /** Emits the CFI on every location change so the caller can save it. */
+  onRestoreKey?: (key: string) => void;
 }
 
+// The epub.js iframe can't read our CSS custom properties (it's a separate
+// document), so we hand it a concrete palette per theme.
 const LIGHT_THEME = {
   body: {
     'font-family': '"Iowan Old Style", "Charter", "Georgia", serif',
@@ -19,6 +32,19 @@ const LIGHT_THEME = {
   p: { 'margin-bottom': '1em' },
   a: { color: '#5b4a2e' },
   '::selection': { background: 'rgba(91, 74, 46, 0.25)' },
+};
+
+const SEPIA_THEME = {
+  body: {
+    'font-family': '"Iowan Old Style", "Charter", "Georgia", serif',
+    'line-height': '1.75',
+    color: '#2a1f12',
+    background: '#ecdec2',
+    padding: '0 8px',
+  },
+  p: { 'margin-bottom': '1em' },
+  a: { color: '#a35a2b' },
+  '::selection': { background: 'rgba(163, 90, 43, 0.22)' },
 };
 
 const DARK_THEME = {
@@ -34,12 +60,19 @@ const DARK_THEME = {
   '::selection': { background: 'rgba(201, 180, 138, 0.3)' },
 };
 
-export default function EpubReader({ fileBuffer, onLocationChange, onSelection }: Props) {
+export default function EpubReader({
+  fileBuffer,
+  onLocationChange,
+  onSelection,
+  initialRestoreKey,
+  onRestoreKey,
+}: Props) {
   const viewerRef = useRef<HTMLDivElement>(null);
   const bookRef = useRef<Book | null>(null);
   const renditionRef = useRef<Rendition | null>(null);
   const [chapter, setChapter] = useState<string>('');
   const [meta, setMeta] = useState<{ title?: string; author?: string }>({});
+  const [typography, setTypography] = useState<Typography>(() => readTypography());
   const { theme } = useTheme();
 
   useEffect(() => {
@@ -55,9 +88,13 @@ export default function EpubReader({ fileBuffer, onLocationChange, onSelection }
     });
     renditionRef.current = rendition;
     rendition.themes.register('light', LIGHT_THEME);
+    rendition.themes.register('sepia', SEPIA_THEME);
     rendition.themes.register('dark', DARK_THEME);
     rendition.themes.select(theme);
-    rendition.display();
+    // If we have a CFI from a prior session, open the book there.
+    // epubjs display() accepts a CFI string; invalid keys fall back to the
+    // beginning silently, so no try/catch needed.
+    rendition.display(initialRestoreKey || undefined);
 
     book.loaded.metadata.then((m) => {
       setMeta({ title: m.title, author: m.creator });
@@ -75,6 +112,9 @@ export default function EpubReader({ fileBuffer, onLocationChange, onSelection }
           .join('\n')
           .trim();
         onLocationChange(label, visible, meta);
+        // The CFI is the precise restore key. The chapter label above is
+        // for humans; this is what we save to the server.
+        if (loc.start.cfi) onRestoreKey?.(loc.start.cfi);
       } catch {
         // ignore
       }
@@ -110,6 +150,33 @@ export default function EpubReader({ fileBuffer, onLocationChange, onSelection }
     renditionRef.current?.themes.select(theme);
   }, [theme]);
 
+  // Apply typography overrides whenever the user tweaks them. epub.js has a
+  // `themes.override` method that targets selectors inside the rendered iframe.
+  // Persist alongside so the next session inherits the choices.
+  useEffect(() => {
+    writeTypography(typography);
+    const rendition = renditionRef.current;
+    if (!rendition) return;
+    try {
+      rendition.themes.override('font-family', FONT_FAMILY_STACK[typography.family], true);
+      rendition.themes.override('font-size', `${typography.sizePct}%`, true);
+      rendition.themes.override('line-height', String(typography.lineHeight), true);
+      // Side padding — compounded with the base padding already in the theme.
+      rendition.themes.override(
+        'padding-left',
+        `${typography.marginPct}%`,
+        true,
+      );
+      rendition.themes.override(
+        'padding-right',
+        `${typography.marginPct}%`,
+        true,
+      );
+    } catch (err) {
+      console.warn('[epub] typography override failed:', err);
+    }
+  }, [typography]);
+
   function next() { renditionRef.current?.next(); }
   function prev() { renditionRef.current?.prev(); }
 
@@ -134,6 +201,7 @@ export default function EpubReader({ fileBuffer, onLocationChange, onSelection }
             : 'EPUB'}
         </span>
         <span className="ml-auto truncate text-xs text-[var(--color-muted)]">{chapter}</span>
+        <TypographyMenu value={typography} onChange={setTypography} />
       </div>
       <div className="flex-1 overflow-hidden bg-[var(--color-paper)]">
         <div ref={viewerRef} className="mx-auto h-full max-w-3xl px-2" />

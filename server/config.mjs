@@ -26,6 +26,30 @@ export const config = {
     ? Number(process.env.COOKIE_MAX_AGE_MS)
     : 30 * 24 * 60 * 60 * 1000,
 
+  // Stage 2: Postgres. When DATABASE_URL is unset the app runs without any
+  // persistence features — login still works, there's just no /api/me or
+  // /api/books. Railway auto-injects DATABASE_URL when a Postgres addon is
+  // attached, so this becomes active on deploy without any code changes.
+  databaseUrl: process.env.DATABASE_URL || '',
+
+  // How long the "rc_user" cookie lasts once a username is picked. Long-lived:
+  // once you've chosen a handle, your friends shouldn't have to re-pick it on
+  // every visit. One year by default.
+  userCookieMaxAgeMs: process.env.USER_COOKIE_MAX_AGE_MS
+    ? Number(process.env.USER_COOKIE_MAX_AGE_MS)
+    : 365 * 24 * 60 * 60 * 1000,
+
+  // Stage 4: shared library. Files are stored on the host's disk at this
+  // path (Railway mounts a volume here). Empty disables uploads. When set,
+  // the server will mkdir -p the path on boot if it doesn't exist.
+  uploadsDir: process.env.UPLOADS_DIR || '',
+
+  // Max upload size in bytes. Default 100MB — covers most textbooks and
+  // long-form EPUBs while guarding against accidental huge uploads.
+  maxUploadBytes: process.env.MAX_UPLOAD_BYTES
+    ? Number(process.env.MAX_UPLOAD_BYTES)
+    : 100 * 1024 * 1024,
+
   // Where to find the built frontend in production.
   // The repository builds to ./dist; resolved to absolute path in staticAssets.mjs.
   distDir: process.env.DIST_DIR || 'dist',

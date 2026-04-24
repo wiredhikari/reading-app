@@ -6,6 +6,9 @@ import { config } from './config.mjs';
 import { healthRouter } from './routes/health.mjs';
 import { chatRouter } from './routes/chat.mjs';
 import { loginRouter } from './routes/login.mjs';
+import { usernameRouter } from './routes/username.mjs';
+import { booksRouter } from './routes/books.mjs';
+import { libraryRouter } from './routes/library.mjs';
 import { gateMiddleware } from './auth.mjs';
 import { mountStaticAssets } from './staticAssets.mjs';
 
@@ -102,6 +105,14 @@ export function createApp() {
 
   // Gated API routes.
   app.use('/api', chatRouter);
+  // Stage 2: identity + book persistence. These routes gracefully degrade
+  // when DATABASE_URL isn't set — /api/me returns { persistence: false } and
+  // the frontend skips the username dance.
+  app.use('/api', usernameRouter);
+  app.use('/api', booksRouter);
+  // Stage 4: shared library. Only exposes anything when UPLOADS_DIR is set.
+  // requireLibraryReady inside the router handles the "not configured" case.
+  app.use('/api', libraryRouter);
 
   // Static frontend (production). This is also gated — static assets serve
   // the built SPA, which we don't want scrapers pulling without the password.
