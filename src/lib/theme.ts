@@ -1,17 +1,80 @@
 import { useEffect, useState, useCallback } from 'react';
 
-// Three Stoa themes — matched to the logo's palette:
-//   light  — Marble:    daylight on the colonnade (ivory + wine)
-//   sepia  — Parchment: reading between the columns (cream + wine)
-//   dark   — Midnight:  the temple at night (navy + cream + gold)
-export type Theme = 'light' | 'sepia' | 'dark';
+// Stoa themes. The first three are canonical (light/sepia/dark match the
+// design-system primitives); the rest are deliberate variations on the
+// reading mood — each is a self-contained CSS block in index.css.
+export type Theme =
+  | 'light'    // Marble — ivory + wine, daylight on the colonnade
+  | 'sepia'    // Parchment — cream + wine, afternoon between the columns
+  | 'dark'     // Midnight — navy + cream + gold, the temple at night
+  | 'vellum'   // Vellum — ivory page, slate ink, walnut accent
+  | 'twilight' // Twilight — dim purple-blue, warm gold accent
+  | 'forest'   // Forest — dark moss + cream + lichen-gold
+  | 'sage'     // Sage — soft green-cream, deep moss
+  | 'rose'     // Rose — warm dawn paper, dusty wine
+  | 'iron'     // Iron — neutral grayscale, no chroma
+  | 'aged';    // Aged — yellowed paper, deep walnut
+
 const STORAGE_KEY = 'stoa:theme';
 
-// Order for the cycle toggle — matches sun → paper → moon metaphor.
-const THEME_CYCLE: Theme[] = ['light', 'sepia', 'dark'];
+/** All themes in display order — used by the dropdown and the cycle toggle. */
+export const THEMES: readonly Theme[] = [
+  'light',
+  'sepia',
+  'vellum',
+  'sage',
+  'rose',
+  'aged',
+  'dark',
+  'twilight',
+  'forest',
+  'iron',
+] as const;
+
+/** Human-readable label for each theme. */
+export const THEME_LABEL: Record<Theme, string> = {
+  light: 'Marble',
+  sepia: 'Parchment',
+  dark: 'Midnight',
+  vellum: 'Vellum',
+  twilight: 'Twilight',
+  forest: 'Forest',
+  sage: 'Sage',
+  rose: 'Rose',
+  iron: 'Iron',
+  aged: 'Aged',
+};
+
+/** Tiny one-line description shown next to each theme in the picker. */
+export const THEME_HINT: Record<Theme, string> = {
+  light: 'Daylight on the colonnade',
+  sepia: 'Cream parchment, afternoon',
+  dark: 'The temple at night',
+  vellum: 'Old library ivory',
+  twilight: 'Dim purple, warm gold',
+  forest: 'Dark moss, cream type',
+  sage: 'Soft green daylight',
+  rose: 'Warm dawn paper',
+  iron: 'Neutral grayscale',
+  aged: 'Yellowed century paper',
+};
+
+/** Whether a given theme uses a dark or light scheme. Used to group the picker. */
+export const THEME_IS_DARK: Record<Theme, boolean> = {
+  light: false,
+  sepia: false,
+  dark: true,
+  vellum: false,
+  twilight: true,
+  forest: true,
+  sage: false,
+  rose: false,
+  iron: true,
+  aged: false,
+};
 
 function isTheme(v: unknown): v is Theme {
-  return v === 'light' || v === 'sepia' || v === 'dark';
+  return typeof v === 'string' && (THEMES as readonly string[]).includes(v);
 }
 
 function readInitialTheme(): Theme {
@@ -22,11 +85,19 @@ function readInitialTheme(): Theme {
   return prefersDark ? 'dark' : 'light';
 }
 
-// iOS status bar / Android chrome — keep this in sync with --color-paper.
+// iOS status bar / Android chrome — keep these in sync with --color-paper
+// in index.css. (Browsers don't read CSS variables for theme-color.)
 const THEME_META_COLOR: Record<Theme, string> = {
-  light: '#faf9f5', // ivory
-  sepia: '#e8e0cf', // cream
-  dark: '#0a0e14',  // midnight
+  light:    '#faf9f5',
+  sepia:    '#e8e0cf',
+  dark:     '#0a0e14',
+  vellum:   '#f3eee2',
+  twilight: '#1a1825',
+  forest:   '#0e1a14',
+  sage:     '#ebede2',
+  rose:     '#f3e6df',
+  iron:     '#1a1a1a',
+  aged:     '#e8d8b0',
 };
 
 function applyTheme(theme: Theme) {
@@ -70,10 +141,11 @@ export function useTheme(): { theme: Theme; toggle: () => void; setTheme: (t: Th
     }
   }, []);
 
-  // Cycle light → sepia → dark → light. One-tap toggle with a changing icon.
+  // Cycle through every theme — kept for users who prefer a single tap to
+  // step around the palette rather than picking from a list.
   const toggle = useCallback(() => {
-    const idx = THEME_CYCLE.indexOf(theme);
-    const next = THEME_CYCLE[(idx + 1) % THEME_CYCLE.length];
+    const idx = THEMES.indexOf(theme);
+    const next = THEMES[(idx + 1) % THEMES.length];
     setTheme(next);
   }, [theme, setTheme]);
 

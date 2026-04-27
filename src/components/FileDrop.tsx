@@ -26,7 +26,9 @@ export default function FileDrop({ onFile }: Props) {
         const file = e.dataTransfer.files?.[0];
         if (file) handleFile(file);
       }}
-      className="flex h-full items-center justify-center px-6 py-12"
+      // Mobile: anchor near the top so the library section below is in view
+      // without scrolling. Desktop: keep the centered hero.
+      className="flex w-full justify-center px-6 pb-8 pt-6 sm:h-full sm:items-center sm:py-12"
     >
       <div
         className={`relative w-full max-w-md rounded-2xl border bg-[var(--color-surface)] p-8 text-center transition-all sm:p-10 ${

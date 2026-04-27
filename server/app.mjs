@@ -8,6 +8,8 @@ import { chatRouter } from './routes/chat.mjs';
 import { loginRouter } from './routes/login.mjs';
 import { usernameRouter } from './routes/username.mjs';
 import { booksRouter } from './routes/books.mjs';
+import { notesRouter } from './routes/notes.mjs';
+import { chatHistoryRouter } from './routes/chat-history.mjs';
 import { libraryRouter } from './routes/library.mjs';
 import { gateMiddleware } from './auth.mjs';
 import { mountStaticAssets } from './staticAssets.mjs';
@@ -110,6 +112,8 @@ export function createApp() {
   // the frontend skips the username dance.
   app.use('/api', usernameRouter);
   app.use('/api', booksRouter);
+  app.use('/api', notesRouter);
+  app.use('/api', chatHistoryRouter);
   // Stage 4: shared library. Only exposes anything when UPLOADS_DIR is set.
   // requireLibraryReady inside the router handles the "not configured" case.
   app.use('/api', libraryRouter);

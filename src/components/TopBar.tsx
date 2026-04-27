@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import ThemeToggle from './ThemeToggle';
+import ThemePicker from './ThemePicker';
 
 export type MobileTab = 'reader' | 'chat';
 
@@ -69,7 +69,7 @@ export default function TopBar({
             Close
           </button>
         )}
-        <ThemeToggle />
+        <ThemePicker />
         {user && onSignOut && <AccountMenu user={user} onSignOut={onSignOut} />}
       </div>
     </header>

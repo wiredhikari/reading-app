@@ -4,6 +4,7 @@ import {
   saveNotes as saveNotesApi,
   upsertBook,
 } from '../lib/persistence';
+import { formatClock } from '../lib/format';
 
 interface Props {
   /** Identifies the book whose notes we're editing. */
@@ -142,7 +143,7 @@ export default function NotesEditor({
             {saving ? (
               <span>Saving…</span>
             ) : savedAt ? (
-              <span>Saved {formatTime(savedAt)}</span>
+              <span>Saved {formatClock(savedAt)}</span>
             ) : null}
             <button
               onClick={() => void closeAndSave()}
@@ -173,6 +174,4 @@ export default function NotesEditor({
   );
 }
 
-function formatTime(d: Date): string {
-  return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-}
+// formatClock lives in src/lib/format.ts now.

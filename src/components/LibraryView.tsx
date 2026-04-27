@@ -7,6 +7,7 @@ import {
   type LibraryFile,
 } from '../lib/persistence';
 import NotesEditor from './NotesEditor';
+import { formatSize } from '../lib/format';
 
 interface Props {
   /** Signed-in user id — used to show the "delete" action on your own uploads. */
@@ -214,10 +215,4 @@ function FormatBadge({ format }: { format: 'pdf' | 'epub' }) {
   );
 }
 
-function formatSize(bytes: number): string {
-  if (!Number.isFinite(bytes) || bytes <= 0) return '—';
-  const mb = bytes / (1024 * 1024);
-  if (mb >= 1) return `${mb.toFixed(1)} MB`;
-  const kb = bytes / 1024;
-  return `${kb.toFixed(0)} KB`;
-}
+// formatSize lives in src/lib/format.ts now — shared with other lists.

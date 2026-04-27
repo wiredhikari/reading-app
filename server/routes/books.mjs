@@ -1,40 +1,15 @@
 import express from 'express';
-import { hasDatabase, query, queryOne } from '../db.mjs';
+import { query, queryOne } from '../db.mjs';
+import {
+  parsePositiveId,
+  requireUser,
+  sanitizeString,
+} from './_helpers.mjs';
 
 export const booksRouter = express.Router();
 
-// Pull the current user from the signed rc_user cookie. Returns the numeric
-// id or null. This mirrors what `/api/me` does so the two endpoints agree.
-function currentUserId(req) {
-  const raw = req.signedCookies?.rc_user;
-  if (!raw) return null;
-  const n = Number(raw);
-  return Number.isFinite(n) && n > 0 ? n : null;
-}
-
-// Everything here needs a DB and a user. Short-circuit both.
-function requireUser(req, res) {
-  if (!hasDatabase()) {
-    res.status(503).json({ error: 'Persistence not configured on this server.' });
-    return null;
-  }
-  const userId = currentUserId(req);
-  if (!userId) {
-    res.status(401).json({ error: 'Pick a username first.' });
-    return null;
-  }
-  return userId;
-}
-
 const HASH_RE = /^[a-f0-9]{64}$/; // SHA-256 hex
 const FORMAT_RE = /^(pdf|epub)$/;
-
-function sanitizeString(v, max = 500) {
-  if (typeof v !== 'string') return null;
-  const s = v.trim();
-  if (!s || s.length > max) return null;
-  return s;
-}
 
 /**
  * POST /api/books
@@ -44,7 +19,7 @@ function sanitizeString(v, max = 500) {
  * Idempotent: if (user_id, file_hash) already exists, updates last_opened_at
  * and returns the existing bookId + prior location. Otherwise inserts.
  *
- * Response: { bookId, lastLocation }  — lastLocation may be null.
+ * Response: { bookId, lastLocation } — lastLocation may be null.
  */
 booksRouter.post('/books', async (req, res) => {
   const userId = requireUser(req, res);
@@ -86,7 +61,7 @@ booksRouter.post('/books', async (req, res) => {
     );
     res.json({ bookId: row.id, lastLocation: progress?.location ?? null });
   } catch (err) {
-    console.error('[books] POST error:', err);
+    console.error('[stoa] POST books error:', err);
     res.status(500).json({ error: 'database error' });
   }
 });
@@ -101,8 +76,8 @@ booksRouter.put('/books/:id/progress', async (req, res) => {
   const userId = requireUser(req, res);
   if (!userId) return;
 
-  const bookId = Number(req.params.id);
-  if (!Number.isFinite(bookId) || bookId <= 0) {
+  const bookId = parsePositiveId(req.params.id);
+  if (!bookId) {
     res.status(400).json({ error: 'invalid book id' });
     return;
   }
@@ -131,195 +106,37 @@ booksRouter.put('/books/:id/progress', async (req, res) => {
     );
     res.status(204).end();
   } catch (err) {
-    console.error('[books] PUT progress error:', err);
+    console.error('[stoa] PUT progress error:', err);
     res.status(500).json({ error: 'database error' });
   }
 });
 
-// ---- Chat history ---------------------------------------------------------
-
-// Hard cap on how many chat rows we return / accept. Token budget, not row
-// count, is the real constraint, but a message cap keeps the UX predictable
-// and gives a cheap defense against runaway inserts.
-const CHAT_HISTORY_LIMIT = 40;
-const CHAT_CONTENT_MAX = 16_000; // ~4k tokens; mirrors chatLimits.maxMessageChars intent
-
-const ALLOWED_CHAT_ROLES = new Set(['user', 'assistant']);
-
-async function assertBookOwned(bookId, userId) {
-  const owned = await queryOne(
-    'select id from books where id = $1 and user_id = $2',
-    [bookId, userId],
-  );
-  return !!owned;
-}
-
 /**
- * GET /api/books/:id/chat
+ * GET /api/books
  *
- * Returns the saved chat history for a book, oldest first. Capped at the
- * most recent CHAT_HISTORY_LIMIT rows — we pull the tail then reverse so
- * the client receives them in send order.
+ * Lists the user's per-user book records, joined with the shared library so
+ * the client knows which ones can be re-opened from the server in one click
+ * vs. needing the user to re-pick the file.
  */
-booksRouter.get('/books/:id/chat', async (req, res) => {
+booksRouter.get('/books', async (req, res) => {
   const userId = requireUser(req, res);
   if (!userId) return;
-
-  const bookId = Number(req.params.id);
-  if (!Number.isFinite(bookId) || bookId <= 0) {
-    res.status(400).json({ error: 'invalid book id' });
-    return;
-  }
-
   try {
-    if (!(await assertBookOwned(bookId, userId))) {
-      res.status(404).json({ error: 'book not found' });
-      return;
-    }
     const rows = await query(
-      `select id, role, content, created_at
-         from chat_messages
-        where book_id = $1
-        order by id desc
-        limit $2`,
-      [bookId, CHAT_HISTORY_LIMIT],
+      `select b.id, b.file_hash, b.file_name, b.title, b.author, b.format,
+              b.last_opened_at, rp.location as last_location,
+              lf.id as library_id
+       from books b
+       left join reading_progress rp on rp.book_id = b.id
+       left join library_files lf on lf.file_hash = b.file_hash
+       where b.user_id = $1
+       order by b.last_opened_at desc
+       limit 50`,
+      [userId],
     );
-    // Return oldest-first so the client can drop them straight into state.
-    res.json({ messages: rows.reverse() });
+    res.json({ books: rows });
   } catch (err) {
-    console.error('[books] GET chat error:', err);
-    res.status(500).json({ error: 'database error' });
-  }
-});
-
-/**
- * POST /api/books/:id/chat-message  { role, content }
- *
- * Append a single message to a book's chat log. Called twice per turn:
- * once when the user submits, once when the assistant stream completes.
- * The server is intentionally oblivious to the stream itself — keeping
- * streaming and persistence on separate paths means either can fail without
- * corrupting the other.
- */
-booksRouter.post('/books/:id/chat-message', async (req, res) => {
-  const userId = requireUser(req, res);
-  if (!userId) return;
-
-  const bookId = Number(req.params.id);
-  if (!Number.isFinite(bookId) || bookId <= 0) {
-    res.status(400).json({ error: 'invalid book id' });
-    return;
-  }
-
-  const role = typeof req.body?.role === 'string' ? req.body.role : '';
-  if (!ALLOWED_CHAT_ROLES.has(role)) {
-    res.status(400).json({ error: 'role must be "user" or "assistant".' });
-    return;
-  }
-  const content = sanitizeString(req.body?.content, CHAT_CONTENT_MAX);
-  if (!content) {
-    res.status(400).json({ error: 'content must be a non-empty string.' });
-    return;
-  }
-
-  try {
-    if (!(await assertBookOwned(bookId, userId))) {
-      res.status(404).json({ error: 'book not found' });
-      return;
-    }
-    const row = await queryOne(
-      `insert into chat_messages (book_id, role, content)
-       values ($1, $2, $3)
-       returning id, created_at`,
-      [bookId, role, content],
-    );
-    res.status(201).json({ id: row.id, created_at: row.created_at });
-  } catch (err) {
-    console.error('[books] POST chat-message error:', err);
-    res.status(500).json({ error: 'database error' });
-  }
-});
-
-// ---- Notes ----------------------------------------------------------------
-
-const NOTES_MAX = 200_000; // ~50 pages of writing — generous
-
-/**
- * GET /api/books/:id/notes
- *
- * Returns the per-book notes blob. Notes are stored on the books row
- * (one blob per user/book), not as separate rows — multi-highlight is a
- * future story.
- */
-booksRouter.get('/books/:id/notes', async (req, res) => {
-  const userId = requireUser(req, res);
-  if (!userId) return;
-
-  const bookId = Number(req.params.id);
-  if (!Number.isFinite(bookId) || bookId <= 0) {
-    res.status(400).json({ error: 'invalid book id' });
-    return;
-  }
-  try {
-    const row = await queryOne(
-      `select notes, notes_updated_at
-         from books
-        where id = $1 and user_id = $2`,
-      [bookId, userId],
-    );
-    if (!row) {
-      res.status(404).json({ error: 'book not found' });
-      return;
-    }
-    res.json({
-      notes: row.notes ?? '',
-      updatedAt: row.notes_updated_at,
-    });
-  } catch (err) {
-    console.error('[books] GET notes error:', err);
-    res.status(500).json({ error: 'database error' });
-  }
-});
-
-/**
- * PUT /api/books/:id/notes  { notes }
- *
- * Replaces the notes blob entirely. We accept the empty string ("clear my
- * notes") so the caller can use one endpoint for both save and clear.
- */
-booksRouter.put('/books/:id/notes', async (req, res) => {
-  const userId = requireUser(req, res);
-  if (!userId) return;
-
-  const bookId = Number(req.params.id);
-  if (!Number.isFinite(bookId) || bookId <= 0) {
-    res.status(400).json({ error: 'invalid book id' });
-    return;
-  }
-  const raw = req.body?.notes;
-  if (typeof raw !== 'string') {
-    res.status(400).json({ error: 'notes must be a string' });
-    return;
-  }
-  if (raw.length > NOTES_MAX) {
-    res.status(413).json({ error: `notes exceeds ${NOTES_MAX} chars` });
-    return;
-  }
-  try {
-    const updated = await queryOne(
-      `update books
-         set notes = $1, notes_updated_at = now()
-       where id = $2 and user_id = $3
-       returning notes_updated_at`,
-      [raw, bookId, userId],
-    );
-    if (!updated) {
-      res.status(404).json({ error: 'book not found' });
-      return;
-    }
-    res.json({ updatedAt: updated.notes_updated_at });
-  } catch (err) {
-    console.error('[books] PUT notes error:', err);
+    console.error('[stoa] GET books error:', err);
     res.status(500).json({ error: 'database error' });
   }
 });
@@ -328,15 +145,15 @@ booksRouter.put('/books/:id/notes', async (req, res) => {
  * DELETE /api/books/:id
  *
  * Removes a per-user book record (and via cascade: progress, chat, notes).
- * Does NOT delete the underlying library_files row — that's separate
- * scope (DELETE /api/library/:id, uploader-only).
+ * Does NOT delete the underlying library_files row — that's separate scope
+ * (DELETE /api/library/:id, uploader-only).
  */
 booksRouter.delete('/books/:id', async (req, res) => {
   const userId = requireUser(req, res);
   if (!userId) return;
 
-  const bookId = Number(req.params.id);
-  if (!Number.isFinite(bookId) || bookId <= 0) {
+  const bookId = parsePositiveId(req.params.id);
+  if (!bookId) {
     res.status(400).json({ error: 'invalid book id' });
     return;
   }
@@ -352,67 +169,7 @@ booksRouter.delete('/books/:id', async (req, res) => {
     await query('delete from books where id = $1', [bookId]);
     res.status(204).end();
   } catch (err) {
-    console.error('[books] DELETE error:', err);
-    res.status(500).json({ error: 'database error' });
-  }
-});
-
-/**
- * DELETE /api/books/:id/chat
- *
- * Clears a book's chat history. Useful when a reader wants to start fresh.
- */
-booksRouter.delete('/books/:id/chat', async (req, res) => {
-  const userId = requireUser(req, res);
-  if (!userId) return;
-
-  const bookId = Number(req.params.id);
-  if (!Number.isFinite(bookId) || bookId <= 0) {
-    res.status(400).json({ error: 'invalid book id' });
-    return;
-  }
-
-  try {
-    if (!(await assertBookOwned(bookId, userId))) {
-      res.status(404).json({ error: 'book not found' });
-      return;
-    }
-    await query('delete from chat_messages where book_id = $1', [bookId]);
-    res.status(204).end();
-  } catch (err) {
-    console.error('[books] DELETE chat error:', err);
-    res.status(500).json({ error: 'database error' });
-  }
-});
-
-/**
- * GET /api/books
- *
- * Returns the user's books ordered by last_opened_at desc. Useful for a
- * future "Recently opened" list on the landing screen.
- */
-booksRouter.get('/books', async (req, res) => {
-  const userId = requireUser(req, res);
-  if (!userId) return;
-  try {
-    // Left-join with library_files so the client knows whether the book is
-    // also available on the server (and can be re-opened in one click) vs.
-    // only existing locally (which means the user must re-pick it).
-    const rows = await query(
-      `select b.id, b.file_hash, b.file_name, b.title, b.author, b.format,
-              b.last_opened_at, rp.location as last_location,
-              lf.id as library_id
-       from books b
-       left join reading_progress rp on rp.book_id = b.id
-       left join library_files lf on lf.file_hash = b.file_hash
-       where b.user_id = $1
-       order by b.last_opened_at desc
-       limit 50`,
-      [userId],
-    );
-    res.json({ books: rows });
-  } catch (err) {
-    console.error('[books] GET error:', err);
+    console.error('[stoa] DELETE books error:', err);
     res.status(500).json({ error: 'database error' });
   }
 });

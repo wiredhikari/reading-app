@@ -14,17 +14,19 @@
    =========================================================================== */
 
 /* ===========================================================================
-   Stoa palette
+   Stoa palettes
    --------------------------------------------------------------------------
-   The brand reads off the logo: deep midnight navy as the field, cream stone
-   for the colonnade, deep wine for the door, antique gold for the inscription.
-   Every theme draws from those four notes; only the assignment changes.
+   Every theme is built from the same five logo notes but in different roles:
 
-     midnight  #0a0e14   (logo background — primary in dark)
-     cream     #e8e0cf   (logo columns — primary in sepia, accent in dark)
-     ivory     #faf9f5   (light surface base)
-     wine      #5c1f1c   (logo door — primary accent in light/sepia)
-     gold      #c9a96e   (logo inscription — accent in dark)
+     midnight  #0a0e14   navy field
+     cream     #e8e0cf   colonnade stone
+     ivory     #faf9f5   light page
+     wine      #5c1f1c   maroon door
+     gold      #c9a96e   gilt inscription
+
+   Beyond the three canonical themes (light/sepia/dark), there are seven
+   variations: vellum, twilight, forest, sage, rose, iron, aged. Each is a
+   complete swap — components only ever read `var(--color-*)`, never literals.
    =========================================================================== */
 
 :root,
@@ -150,6 +152,315 @@
     0 8px 32px rgba(201, 169, 110, 0.16);
 
   color-scheme: dark;
+}
+
+:root[data-theme="vellum"] {
+  /* Vellum — old library light. Ivory page, slate ink, walnut accent. */
+  --color-paper:        #f3eee2;
+  --color-surface:      #faf6ec;
+  --color-surface-2:    #e7dfcb;
+  --color-glass:        rgba(250, 246, 236, 0.78);
+
+  --color-ink:          #1d1a14;
+  --color-ink-soft:     #3e372c;
+  --color-muted:        #6c6354;
+
+  --color-rule:         #d6cdb6;
+  --color-rule-strong:  #b9ad90;
+
+  --color-accent:       #6f4a25;
+  --color-accent-soft:  rgba(111, 74, 37, 0.12);
+  --color-accent-glow:  rgba(111, 74, 37, 0.28);
+
+  --color-user-bubble:  #faf6ec;
+  --color-danger:       #8e2727;
+  --color-danger-bg:    rgba(142, 39, 39, 0.08);
+
+  --pdf-filter: sepia(0.06) saturate(1.02);
+
+  --shadow-soft:
+    0 1px 1px rgba(29, 26, 20, 0.05),
+    0 4px 12px rgba(29, 26, 20, 0.07);
+  --shadow-card:
+    0 1px 2px rgba(29, 26, 20, 0.06),
+    0 8px 24px rgba(29, 26, 20, 0.10);
+  --shadow-glow:
+    0 0 0 1px var(--color-rule),
+    0 8px 32px rgba(111, 74, 37, 0.13);
+
+  color-scheme: light;
+}
+
+:root[data-theme="twilight"] {
+  /* Twilight — last hour of daylight, dim purple-blue, warm gold accent. */
+  --color-paper:        #1a1825;
+  --color-surface:      #232035;
+  --color-surface-2:    #14121e;
+  --color-glass:        rgba(35, 32, 53, 0.74);
+
+  --color-ink:          #e8e0cf;
+  --color-ink-soft:     #c4bca9;
+  --color-muted:        #888098;
+
+  --color-rule:         #2c2942;
+  --color-rule-strong:  #3a3654;
+
+  --color-accent:       #b8a482;
+  --color-accent-soft:  rgba(184, 164, 130, 0.16);
+  --color-accent-glow:  rgba(184, 164, 130, 0.34);
+
+  --color-user-bubble:  #2a2740;
+  --color-danger:       #e0a4a4;
+  --color-danger-bg:    rgba(224, 164, 164, 0.10);
+
+  --pdf-filter: invert(0.90) hue-rotate(195deg) saturate(0.95);
+
+  --shadow-soft:
+    0 1px 1px rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-card:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 12px 32px rgba(0, 0, 0, 0.5);
+  --shadow-glow:
+    0 0 0 1px var(--color-rule),
+    0 8px 32px rgba(184, 164, 130, 0.18);
+
+  color-scheme: dark;
+}
+
+:root[data-theme="forest"] {
+  /* Forest — dark moss, cream type, lichen-gold. Calm, undergrowth-still. */
+  --color-paper:        #0e1a14;
+  --color-surface:      #16241c;
+  --color-surface-2:    #0a1410;
+  --color-glass:        rgba(22, 36, 28, 0.72);
+
+  --color-ink:          #e0d9c0;
+  --color-ink-soft:     #b8b29c;
+  --color-muted:        #7a8478;
+
+  --color-rule:         #1c2c22;
+  --color-rule-strong:  #2a3c30;
+
+  --color-accent:       #c8b375;
+  --color-accent-soft:  rgba(200, 179, 117, 0.14);
+  --color-accent-glow:  rgba(200, 179, 117, 0.32);
+
+  --color-user-bubble:  #1a2e23;
+  --color-danger:       #d99a9a;
+  --color-danger-bg:    rgba(217, 154, 154, 0.10);
+
+  --pdf-filter: invert(0.92) hue-rotate(165deg);
+
+  --shadow-soft:
+    0 1px 1px rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-card:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 12px 32px rgba(0, 0, 0, 0.5);
+  --shadow-glow:
+    0 0 0 1px var(--color-rule),
+    0 8px 32px rgba(200, 179, 117, 0.16);
+
+  color-scheme: dark;
+}
+
+:root[data-theme="sage"] {
+  /* Sage — soft green-cream, deep moss accent. Daylight in a herb garden. */
+  --color-paper:        #ebede2;
+  --color-surface:      #f4f5ee;
+  --color-surface-2:    #ddddcd;
+  --color-glass:        rgba(244, 245, 238, 0.78);
+
+  --color-ink:          #1f2a1d;
+  --color-ink-soft:     #3a4737;
+  --color-muted:        #6a7264;
+
+  --color-rule:         #d3d6c4;
+  --color-rule-strong:  #b8bda2;
+
+  --color-accent:       #4a6038;
+  --color-accent-soft:  rgba(74, 96, 56, 0.10);
+  --color-accent-glow:  rgba(74, 96, 56, 0.26);
+
+  --color-user-bubble:  #f4f5ee;
+  --color-danger:       #82362e;
+  --color-danger-bg:    rgba(130, 54, 46, 0.08);
+
+  --pdf-filter: none;
+
+  --shadow-soft:
+    0 1px 1px rgba(31, 42, 29, 0.05),
+    0 4px 12px rgba(31, 42, 29, 0.07);
+  --shadow-card:
+    0 1px 2px rgba(31, 42, 29, 0.06),
+    0 8px 24px rgba(31, 42, 29, 0.10);
+  --shadow-glow:
+    0 0 0 1px var(--color-rule),
+    0 8px 32px rgba(74, 96, 56, 0.12);
+
+  color-scheme: light;
+}
+
+:root[data-theme="rose"] {
+  /* Rose — warm dawn paper, dusty wine accent. */
+  --color-paper:        #f3e6df;
+  --color-surface:      #faf0eb;
+  --color-surface-2:    #e6d4cb;
+  --color-glass:        rgba(250, 240, 235, 0.78);
+
+  --color-ink:          #2a1d1a;
+  --color-ink-soft:     #4a3833;
+  --color-muted:        #7a6862;
+
+  --color-rule:         #d8c5bc;
+  --color-rule-strong:  #b89e92;
+
+  --color-accent:       #8b3a3a;
+  --color-accent-soft:  rgba(139, 58, 58, 0.10);
+  --color-accent-glow:  rgba(139, 58, 58, 0.26);
+
+  --color-user-bubble:  #faf0eb;
+  --color-danger:       #8a2a2a;
+  --color-danger-bg:    rgba(138, 42, 42, 0.08);
+
+  --pdf-filter: sepia(0.10) saturate(1.05);
+
+  --shadow-soft:
+    0 1px 1px rgba(42, 29, 26, 0.05),
+    0 4px 12px rgba(42, 29, 26, 0.07);
+  --shadow-card:
+    0 1px 2px rgba(42, 29, 26, 0.06),
+    0 8px 24px rgba(42, 29, 26, 0.10);
+  --shadow-glow:
+    0 0 0 1px var(--color-rule),
+    0 8px 32px rgba(139, 58, 58, 0.13);
+
+  color-scheme: light;
+}
+
+:root[data-theme="iron"] {
+  /* Iron — pure neutral grayscale. Nothing to distract. */
+  --color-paper:        #1a1a1a;
+  --color-surface:      #242424;
+  --color-surface-2:    #131313;
+  --color-glass:        rgba(36, 36, 36, 0.72);
+
+  --color-ink:          #e8e8e8;
+  --color-ink-soft:     #b8b8b8;
+  --color-muted:        #7a7a7a;
+
+  --color-rule:         #2a2a2a;
+  --color-rule-strong:  #3a3a3a;
+
+  --color-accent:       #c0c0c0;
+  --color-accent-soft:  rgba(192, 192, 192, 0.12);
+  --color-accent-glow:  rgba(192, 192, 192, 0.28);
+
+  --color-user-bubble:  #2c2c2c;
+  --color-danger:       #d49797;
+  --color-danger-bg:    rgba(212, 151, 151, 0.10);
+
+  --pdf-filter: invert(0.92) hue-rotate(180deg) saturate(0);
+
+  --shadow-soft:
+    0 1px 1px rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-card:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 12px 32px rgba(0, 0, 0, 0.5);
+  --shadow-glow:
+    0 0 0 1px var(--color-rule),
+    0 8px 32px rgba(192, 192, 192, 0.14);
+
+  color-scheme: dark;
+}
+
+:root[data-theme="aged"] {
+  /* Aged — yellowed century-old paper, deep walnut ink. Very warm. */
+  --color-paper:        #e8d8b0;
+  --color-surface:      #efe1bc;
+  --color-surface-2:    #d8c79a;
+  --color-glass:        rgba(239, 225, 188, 0.78);
+
+  --color-ink:          #2c1d10;
+  --color-ink-soft:     #4d3922;
+  --color-muted:        #7e6638;
+
+  --color-rule:         #cab68a;
+  --color-rule-strong:  #b29f6b;
+
+  --color-accent:       #6a3a1c;
+  --color-accent-soft:  rgba(106, 58, 28, 0.13);
+  --color-accent-glow:  rgba(106, 58, 28, 0.30);
+
+  --color-user-bubble:  #efe1bc;
+  --color-danger:       #7a2222;
+  --color-danger-bg:    rgba(122, 34, 34, 0.10);
+
+  --pdf-filter: sepia(0.30) saturate(1.10);
+
+  --shadow-soft:
+    0 1px 1px rgba(44, 29, 16, 0.06),
+    0 4px 12px rgba(44, 29, 16, 0.09);
+  --shadow-card:
+    0 1px 2px rgba(44, 29, 16, 0.08),
+    0 8px 24px rgba(44, 29, 16, 0.12);
+  --shadow-glow:
+    0 0 0 1px var(--color-rule),
+    0 8px 32px rgba(106, 58, 28, 0.16);
+
+  color-scheme: light;
+}
+
+/* ===========================================================================
+   Swatch palette (theme picker)
+   --------------------------------------------------------------------------
+   The dropdown shows a tri-color swatch for every theme regardless of which
+   one is active. Plain --color-* vars only describe the *current* theme, so
+   we mirror each palette into a flat namespace here.
+   =========================================================================== */
+
+:root {
+  --swatch-paper-light:    #faf9f5;
+  --swatch-ink-light:      #14110d;
+  --swatch-accent-light:   #5c1f1c;
+
+  --swatch-paper-sepia:    #e8e0cf;
+  --swatch-ink-sepia:      #2a1f12;
+  --swatch-accent-sepia:   #5c1f1c;
+
+  --swatch-paper-dark:     #0a0e14;
+  --swatch-ink-dark:       #e8e0cf;
+  --swatch-accent-dark:    #c9a96e;
+
+  --swatch-paper-vellum:   #f3eee2;
+  --swatch-ink-vellum:     #1d1a14;
+  --swatch-accent-vellum:  #6f4a25;
+
+  --swatch-paper-twilight: #1a1825;
+  --swatch-ink-twilight:   #e8e0cf;
+  --swatch-accent-twilight:#b8a482;
+
+  --swatch-paper-forest:   #0e1a14;
+  --swatch-ink-forest:     #e0d9c0;
+  --swatch-accent-forest:  #c8b375;
+
+  --swatch-paper-sage:     #ebede2;
+  --swatch-ink-sage:       #1f2a1d;
+  --swatch-accent-sage:    #4a6038;
+
+  --swatch-paper-rose:     #f3e6df;
+  --swatch-ink-rose:       #2a1d1a;
+  --swatch-accent-rose:    #8b3a3a;
+
+  --swatch-paper-iron:     #1a1a1a;
+  --swatch-ink-iron:       #e8e8e8;
+  --swatch-accent-iron:    #c0c0c0;
+
+  --swatch-paper-aged:     #e8d8b0;
+  --swatch-ink-aged:       #2c1d10;
+  --swatch-accent-aged:    #6a3a1c;
 }
 
 /* ===========================================================================
