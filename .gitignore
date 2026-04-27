@@ -11,3 +11,8 @@ public/icons/_tmp_*
 
 # Local planning scratchpad
 HOSTING_PLAN.md
+
+# Local shared-library storage. In production this is a mounted volume
+# (e.g. /data on Railway); locally we point UPLOADS_DIR at ./uploads and
+# the contents — sha256-keyed book blobs — should never be committed.
+uploads/
