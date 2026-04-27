@@ -328,16 +328,23 @@ export default function App() {
   const hideReaderToolbar = chromeHidden || mobileChromeAutoHidden;
 
   const reader = !file ? (
-    // Landing screen: file drop first, then the user's own books (with
-    // progress), then the shared library. Outer div owns the scroll so all
-    // sections are reachable on short viewports.
-    <div className="h-full w-full overflow-y-auto">
-      <FileDrop onFile={handleFile} />
+    // Landing screen: compact action bar at the top, then the library
+    // filling the rest of the viewport with its own internal scroll. No
+    // outer scroll — the user shouldn't have to scroll past the open-file
+    // bar to see their books.
+    <div className="flex h-full w-full flex-col">
+      <div className="shrink-0">
+        <FileDrop onFile={handleFile} />
+      </div>
       {showLibrary && (
-        <LibraryView
-          currentUserId={meState.kind === 'signed-in' ? meState.user.id : undefined}
-          onOpen={openFromLibrary}
-        />
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <LibraryView
+            currentUserId={
+              meState.kind === 'signed-in' ? meState.user.id : undefined
+            }
+            onOpen={openFromLibrary}
+          />
+        </div>
       )}
     </div>
   ) : file.format === 'pdf' ? (

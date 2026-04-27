@@ -101,9 +101,11 @@ export default function LibraryView({ currentUserId, onOpen }: Props) {
   }
 
   return (
-    <section className="mx-auto w-full max-w-md px-4 pb-10">
-      <div className="flex items-baseline justify-between pb-3">
-        <h2 className="font-display text-lg text-[var(--color-ink)]">Shared library</h2>
+    <section className="mx-auto w-full max-w-md px-3 pb-6 pt-4 sm:px-4 sm:pb-10">
+      <div className="flex items-baseline justify-between pb-2 sm:pb-3">
+        <h2 className="font-display text-base text-[var(--color-ink)] sm:text-lg">
+          Your library
+        </h2>
         <button
           onClick={() => inputRef.current?.click()}
           disabled={busy}
