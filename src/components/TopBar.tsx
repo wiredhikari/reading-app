@@ -234,7 +234,13 @@ function Brand() {
   );
 }
 
-/** Stoa colonnade mark — the logo, simplified for a 28px chip. */
+/**
+ * Stoa colonnade mark. Same composition as the app icon — pediment +
+ * architrave + four columns + maroon door + tiered stylobate — sized down
+ * for a 28px chip in the TopBar. Uses theme variables so it inverts cleanly
+ * on dark themes (cream stone becomes the accent on a dark chip and vice
+ * versa).
+ */
 function Mark() {
   return (
     <span
@@ -242,25 +248,31 @@ function Mark() {
       style={{ boxShadow: 'var(--shadow-soft)' }}
       aria-hidden
     >
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        {/* Acroterion at the apex */}
+        <circle cx="12" cy="3.5" r="0.5" fill="var(--color-ink)" />
         {/* Pediment */}
         <path
-          d="M3 9 L12 3 L21 9 Z"
+          d="M3 8 L12 4 L21 8"
           fill="none"
           stroke="var(--color-ink)"
-          strokeWidth="1.4"
+          strokeWidth="1.2"
           strokeLinejoin="round"
+          strokeLinecap="round"
         />
-        {/* Architrave */}
-        <rect x="4" y="9.4" width="16" height="1.6" fill="var(--color-ink)" />
-        {/* Columns (3 visible at this size) */}
-        <rect x="5.5" y="11" width="1.1" height="8" fill="var(--color-ink)" />
-        <rect x="11.5" y="11" width="1.1" height="8" fill="var(--color-ink)" />
-        <rect x="17.4" y="11" width="1.1" height="8" fill="var(--color-ink)" />
-        {/* Door */}
-        <rect x="8.5" y="13" width="7" height="6" fill="var(--color-accent)" />
-        {/* Stylobate */}
-        <rect x="3.5" y="19.2" width="17" height="1.3" fill="var(--color-ink)" />
+        {/* Architrave (full band — small enough that the inscription is implied
+            rather than drawn) */}
+        <rect x="3" y="8" width="18" height="2" fill="var(--color-ink)" />
+        {/* Columns: 4 narrow shafts, two each side of the door */}
+        <rect x="4.6" y="10.4" width="1.4" height="8" fill="var(--color-ink)" />
+        <rect x="7.6" y="10.4" width="1.4" height="8" fill="var(--color-ink)" />
+        <rect x="15"  y="10.4" width="1.4" height="8" fill="var(--color-ink)" />
+        <rect x="18"  y="10.4" width="1.4" height="8" fill="var(--color-ink)" />
+        {/* Door — wine */}
+        <rect x="10" y="11.5" width="4" height="7" fill="var(--color-accent)" />
+        {/* Stylobate (two steps) */}
+        <rect x="3" y="18.3" width="18" height="1" fill="var(--color-ink)" />
+        <rect x="2.2" y="19.3" width="19.6" height="1" fill="var(--color-ink)" opacity="0.85" />
       </svg>
     </span>
   );
