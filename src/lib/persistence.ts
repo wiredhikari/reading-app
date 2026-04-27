@@ -26,6 +26,8 @@ export interface LibraryBook {
   format: 'pdf' | 'epub';
   last_opened_at: string;
   last_location: string | null;
+  /** When set, the book content is available on the server (Stage-4 library). */
+  library_id: number | null;
 }
 
 async function handle<T>(res: Response): Promise<T> {

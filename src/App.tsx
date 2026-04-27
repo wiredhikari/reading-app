@@ -7,6 +7,7 @@ import SplitPane from './components/SplitPane';
 import TopBar, { type MobileTab } from './components/TopBar';
 import UsernamePicker from './components/UsernamePicker';
 import LibraryView from './components/LibraryView';
+import MyBooksView from './components/MyBooksView';
 import { useMediaQuery } from './lib/useMediaQuery';
 import { MOBILE_MEDIA_QUERY } from './lib/constants';
 import type { ReadingContext } from './lib/systemPrompt';
@@ -266,11 +267,14 @@ export default function App() {
     meState.kind === 'signed-in' && meState.libraryEnabled;
 
   const reader = !file ? (
-    // Landing screen: file drop first, shared library below it (when enabled).
-    // The scroll lives on the wrapping div so short viewports still reach the
-    // library.
+    // Landing screen: file drop first, then the user's own books (with
+    // progress), then the shared library. Outer div owns the scroll so all
+    // sections are reachable on short viewports.
     <div className="h-full w-full overflow-y-auto">
       <FileDrop onFile={handleFile} />
+      {meState.kind === 'signed-in' && (
+        <MyBooksView onOpen={openFromLibrary} />
+      )}
       {showLibrary && (
         <LibraryView
           currentUserId={meState.kind === 'signed-in' ? meState.user.id : undefined}

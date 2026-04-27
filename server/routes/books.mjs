@@ -278,11 +278,16 @@ booksRouter.get('/books', async (req, res) => {
   const userId = requireUser(req, res);
   if (!userId) return;
   try {
+    // Left-join with library_files so the client knows whether the book is
+    // also available on the server (and can be re-opened in one click) vs.
+    // only existing locally (which means the user must re-pick it).
     const rows = await query(
       `select b.id, b.file_hash, b.file_name, b.title, b.author, b.format,
-              b.last_opened_at, rp.location as last_location
+              b.last_opened_at, rp.location as last_location,
+              lf.id as library_id
        from books b
        left join reading_progress rp on rp.book_id = b.id
+       left join library_files lf on lf.file_hash = b.file_hash
        where b.user_id = $1
        order by b.last_opened_at desc
        limit 50`,
