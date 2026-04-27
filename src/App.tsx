@@ -7,12 +7,17 @@ import SplitPane from './components/SplitPane';
 import TopBar, { type MobileTab } from './components/TopBar';
 import UsernamePicker from './components/UsernamePicker';
 import LibraryView from './components/LibraryView';
-import MyBooksView from './components/MyBooksView';
 import { useMediaQuery } from './lib/useMediaQuery';
 import { MOBILE_MEDIA_QUERY } from './lib/constants';
 import type { ReadingContext } from './lib/systemPrompt';
 import { sha256Hex } from './lib/hashFile';
-import { getMe, upsertBook, saveProgress, logoutUser } from './lib/persistence';
+import {
+  getMe,
+  upsertBook,
+  saveProgress,
+  logoutUser,
+  uploadToLibrary,
+} from './lib/persistence';
 
 interface LoadedFile {
   name: string;
@@ -144,6 +149,16 @@ export default function App() {
         } catch (err) {
           console.warn('[persistence] upsertBook failed:', err);
         }
+        // Kindle-style: every book the user opens also gets pushed to the
+        // shared library so it's reachable from any device on the next visit.
+        // Background and best-effort — losing the upload doesn't block the
+        // read, and the library endpoint is idempotent on hash so opening
+        // an already-uploaded book is a no-op there.
+        if (meState.libraryEnabled) {
+          uploadToLibrary(f).catch((err) => {
+            console.warn('[library] auto-upload failed:', err);
+          });
+        }
       }
     },
     [meState],
@@ -272,9 +287,6 @@ export default function App() {
     // sections are reachable on short viewports.
     <div className="h-full w-full overflow-y-auto">
       <FileDrop onFile={handleFile} />
-      {meState.kind === 'signed-in' && (
-        <MyBooksView onOpen={openFromLibrary} />
-      )}
       {showLibrary && (
         <LibraryView
           currentUserId={meState.kind === 'signed-in' ? meState.user.id : undefined}

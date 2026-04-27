@@ -6,6 +6,7 @@ import {
   uploadToLibrary,
   type LibraryFile,
 } from '../lib/persistence';
+import NotesEditor from './NotesEditor';
 
 interface Props {
   /** Signed-in user id — used to show the "delete" action on your own uploads. */
@@ -31,6 +32,7 @@ export default function LibraryView({ currentUserId, onOpen }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [openingId, setOpeningId] = useState<number | null>(null);
+  const [notesFor, setNotesFor] = useState<LibraryFile | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function refresh() {
@@ -141,7 +143,7 @@ export default function LibraryView({ currentUserId, onOpen }: Props) {
             return (
               <li
                 key={row.id}
-                className="group flex items-center gap-3 rounded-lg border border-[var(--color-rule)] bg-[var(--color-surface)] px-3 py-2"
+                className="group flex items-center gap-2 rounded-lg border border-[var(--color-rule)] bg-[var(--color-surface)] px-3 py-2"
               >
                 <FormatBadge format={row.format} />
                 <div className="min-w-0 flex-1">
@@ -150,8 +152,9 @@ export default function LibraryView({ currentUserId, onOpen }: Props) {
                   </div>
                   <div className="truncate text-[11px] text-[var(--color-muted)]">
                     {row.author ? `${row.author} · ` : ''}
-                    {row.uploaded_by_username ? `shared by ${row.uploaded_by_username}` : 'shared'}
-                    {' · '}
+                    {row.my_last_location
+                      ? `at ${row.my_last_location} · `
+                      : ''}
                     {formatSize(row.size_bytes)}
                   </div>
                 </div>
@@ -162,12 +165,20 @@ export default function LibraryView({ currentUserId, onOpen }: Props) {
                 >
                   {opening ? 'Opening…' : 'Open'}
                 </button>
+                <button
+                  onClick={() => setNotesFor(row)}
+                  title="Open notes for this book"
+                  aria-label="Open notes for this book"
+                  className="rounded-full border border-[var(--color-rule)] bg-[var(--color-surface)] px-2.5 py-1 text-[11px] uppercase tracking-wider text-[var(--color-muted)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-ink)]"
+                >
+                  Notes
+                </button>
                 {isMine && (
                   <button
                     onClick={() => handleDelete(row)}
                     title="Remove from library"
                     aria-label="Remove from library"
-                    className="text-[var(--color-muted)] opacity-0 transition-opacity hover:text-[var(--color-danger)] group-hover:opacity-100"
+                    className="rounded-full px-2 py-1 text-base text-[var(--color-muted)] transition-colors hover:text-[var(--color-danger)]"
                   >
                     ×
                   </button>
@@ -176,6 +187,17 @@ export default function LibraryView({ currentUserId, onOpen }: Props) {
             );
           })}
         </ul>
+      )}
+
+      {notesFor && (
+        <NotesEditor
+          fileHash={notesFor.file_hash}
+          fileName={notesFor.file_name}
+          format={notesFor.format}
+          title={notesFor.title ?? undefined}
+          displayTitle={notesFor.title || notesFor.file_name}
+          onClose={() => setNotesFor(null)}
+        />
       )}
     </section>
   );

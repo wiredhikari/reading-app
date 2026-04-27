@@ -101,6 +101,38 @@ export async function listBooks(): Promise<{ books: LibraryBook[] }> {
   return handle(res);
 }
 
+export async function deleteBook(bookId: number): Promise<void> {
+  const res = await fetch(`/api/books/${bookId}`, {
+    method: 'DELETE',
+    credentials: 'same-origin',
+  });
+  await handle<void>(res);
+}
+
+// ---- Notes ----------------------------------------------------------------
+
+export interface BookNotes {
+  notes: string;
+  updatedAt: string | null;
+}
+
+export async function getNotes(bookId: number): Promise<BookNotes> {
+  const res = await fetch(`/api/books/${bookId}/notes`, {
+    credentials: 'same-origin',
+  });
+  return handle<BookNotes>(res);
+}
+
+export async function saveNotes(bookId: number, notes: string): Promise<{ updatedAt: string }> {
+  const res = await fetch(`/api/books/${bookId}/notes`, {
+    method: 'PUT',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ notes }),
+  });
+  return handle<{ updatedAt: string }>(res);
+}
+
 // ---- Chat history ---------------------------------------------------------
 
 export interface StoredChatMessage {
@@ -151,6 +183,10 @@ export interface LibraryFile {
   uploaded_at: string;
   uploaded_by: number | null;
   uploaded_by_username: string | null;
+  /** Per-user reading state. Null when the current user hasn't opened it yet. */
+  my_book_id: number | null;
+  my_last_opened_at: string | null;
+  my_last_location: string | null;
 }
 
 export async function listLibrary(): Promise<LibraryFile[]> {

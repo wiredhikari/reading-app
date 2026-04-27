@@ -200,14 +200,22 @@ libraryRouter.get('/library', async (req, res) => {
   const userId = requireLibraryReady(req, res);
   if (!userId) return;
   try {
+    // Join the user's per-user books row + reading_progress so the client can
+    // show "where I left off" alongside each library entry — single source
+    // of truth for the landing screen.
     const rows = await query(
       `select lf.id, lf.file_hash, lf.file_name, lf.format, lf.size_bytes,
               lf.title, lf.author, lf.uploaded_at, lf.uploaded_by,
-              u.username as uploaded_by_username
+              u.username as uploaded_by_username,
+              b.id as my_book_id, b.last_opened_at as my_last_opened_at,
+              rp.location as my_last_location
          from library_files lf
          left join users u on u.id = lf.uploaded_by
-        order by lf.uploaded_at desc
+         left join books b on b.file_hash = lf.file_hash and b.user_id = $1
+         left join reading_progress rp on rp.book_id = b.id
+        order by coalesce(b.last_opened_at, lf.uploaded_at) desc
         limit 200`,
+      [userId],
     );
     res.json({ library: rows });
   } catch (err) {

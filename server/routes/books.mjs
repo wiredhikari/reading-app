@@ -240,6 +240,123 @@ booksRouter.post('/books/:id/chat-message', async (req, res) => {
   }
 });
 
+// ---- Notes ----------------------------------------------------------------
+
+const NOTES_MAX = 200_000; // ~50 pages of writing — generous
+
+/**
+ * GET /api/books/:id/notes
+ *
+ * Returns the per-book notes blob. Notes are stored on the books row
+ * (one blob per user/book), not as separate rows — multi-highlight is a
+ * future story.
+ */
+booksRouter.get('/books/:id/notes', async (req, res) => {
+  const userId = requireUser(req, res);
+  if (!userId) return;
+
+  const bookId = Number(req.params.id);
+  if (!Number.isFinite(bookId) || bookId <= 0) {
+    res.status(400).json({ error: 'invalid book id' });
+    return;
+  }
+  try {
+    const row = await queryOne(
+      `select notes, notes_updated_at
+         from books
+        where id = $1 and user_id = $2`,
+      [bookId, userId],
+    );
+    if (!row) {
+      res.status(404).json({ error: 'book not found' });
+      return;
+    }
+    res.json({
+      notes: row.notes ?? '',
+      updatedAt: row.notes_updated_at,
+    });
+  } catch (err) {
+    console.error('[books] GET notes error:', err);
+    res.status(500).json({ error: 'database error' });
+  }
+});
+
+/**
+ * PUT /api/books/:id/notes  { notes }
+ *
+ * Replaces the notes blob entirely. We accept the empty string ("clear my
+ * notes") so the caller can use one endpoint for both save and clear.
+ */
+booksRouter.put('/books/:id/notes', async (req, res) => {
+  const userId = requireUser(req, res);
+  if (!userId) return;
+
+  const bookId = Number(req.params.id);
+  if (!Number.isFinite(bookId) || bookId <= 0) {
+    res.status(400).json({ error: 'invalid book id' });
+    return;
+  }
+  const raw = req.body?.notes;
+  if (typeof raw !== 'string') {
+    res.status(400).json({ error: 'notes must be a string' });
+    return;
+  }
+  if (raw.length > NOTES_MAX) {
+    res.status(413).json({ error: `notes exceeds ${NOTES_MAX} chars` });
+    return;
+  }
+  try {
+    const updated = await queryOne(
+      `update books
+         set notes = $1, notes_updated_at = now()
+       where id = $2 and user_id = $3
+       returning notes_updated_at`,
+      [raw, bookId, userId],
+    );
+    if (!updated) {
+      res.status(404).json({ error: 'book not found' });
+      return;
+    }
+    res.json({ updatedAt: updated.notes_updated_at });
+  } catch (err) {
+    console.error('[books] PUT notes error:', err);
+    res.status(500).json({ error: 'database error' });
+  }
+});
+
+/**
+ * DELETE /api/books/:id
+ *
+ * Removes a per-user book record (and via cascade: progress, chat, notes).
+ * Does NOT delete the underlying library_files row — that's separate
+ * scope (DELETE /api/library/:id, uploader-only).
+ */
+booksRouter.delete('/books/:id', async (req, res) => {
+  const userId = requireUser(req, res);
+  if (!userId) return;
+
+  const bookId = Number(req.params.id);
+  if (!Number.isFinite(bookId) || bookId <= 0) {
+    res.status(400).json({ error: 'invalid book id' });
+    return;
+  }
+  try {
+    const owned = await queryOne(
+      'select id from books where id = $1 and user_id = $2',
+      [bookId, userId],
+    );
+    if (!owned) {
+      res.status(404).json({ error: 'book not found' });
+      return;
+    }
+    await query('delete from books where id = $1', [bookId]);
+    res.status(204).end();
+  } catch (err) {
+    console.error('[books] DELETE error:', err);
+    res.status(500).json({ error: 'database error' });
+  }
+});
+
 /**
  * DELETE /api/books/:id/chat
  *
