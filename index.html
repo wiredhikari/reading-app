@@ -15,7 +15,11 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Stoa" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="apple-touch-icon" href="/icons/icon-180.png" />
+    <!-- Apple-touch-icon path is intentionally renamed (`stoa-180.png`) so
+         iOS, which aggressively caches the apple-touch-icon by URL, treats
+         this as a brand-new icon and replaces the legacy "RC" image on
+         existing home-screen shortcuts. Re-add the shortcut after pushing. -->
+    <link rel="apple-touch-icon" href="/icons/stoa-180.png" />
     <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
     <link rel="manifest" href="/manifest.webmanifest" />
 
