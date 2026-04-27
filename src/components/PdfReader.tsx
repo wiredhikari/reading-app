@@ -20,6 +20,8 @@ interface Props {
    * a debounce at the call site — this can fire on every page turn.
    */
   onRestoreKey?: (key: string) => void;
+  /** Hide the reader's internal toolbar for a chromeless reading view. */
+  hideToolbar?: boolean;
 }
 
 /**
@@ -47,6 +49,7 @@ export default function PdfReader({
   onSelection,
   initialRestoreKey,
   onRestoreKey,
+  hideToolbar,
 }: Props) {
   const [doc, setDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
   // Start at the restored page if one was supplied. Guarded by Math.max in
@@ -339,35 +342,37 @@ export default function PdfReader({
   return (
     <div className="flex h-full flex-col">
       {/* Toolbar — compact on narrow screens. */}
-      <div className="flex items-center gap-1.5 border-b border-[var(--color-rule)] bg-[var(--color-paper)] px-2 py-1.5 text-sm sm:gap-2 sm:px-4 sm:py-2">
-        <PillButton onClick={() => setPageNum((p) => Math.max(1, p - 1))} disabled={pageNum <= 1}>
-          ←
-        </PillButton>
-        <span className="px-1 text-xs tabular-nums text-[var(--color-muted)] sm:text-sm">
-          {pageNum} <span className="text-[var(--color-rule-strong)]">/</span> {doc.numPages}
-        </span>
-        <PillButton
-          onClick={() => setPageNum((p) => Math.min(doc.numPages, p + 1))}
-          disabled={pageNum >= doc.numPages}
-        >
-          →
-        </PillButton>
-        <div className="ml-auto flex items-center gap-1 text-[var(--color-muted)] sm:gap-1.5">
-          <PillButton onClick={() => zoom(-0.1)}>−</PillButton>
-          {/* Hide the raw percentage on narrow screens — show a Fit button instead. */}
-          <span className="hidden w-10 text-center text-xs tabular-nums sm:inline">
-            {Math.round(scale * 100)}%
-          </span>
-          <PillButton onClick={() => zoom(0.1)}>+</PillButton>
-          <PillButton
-            onClick={() => setFitWidth(true)}
-            disabled={fitWidth}
-            title="Fit to width"
-          >
-            Fit
+      {!hideToolbar && (
+        <div className="flex items-center gap-1.5 border-b border-[var(--color-rule)] bg-[var(--color-paper)] px-2 py-1.5 text-sm sm:gap-2 sm:px-4 sm:py-2">
+          <PillButton onClick={() => setPageNum((p) => Math.max(1, p - 1))} disabled={pageNum <= 1}>
+            ←
           </PillButton>
+          <span className="px-1 text-xs tabular-nums text-[var(--color-muted)] sm:text-sm">
+            {pageNum} <span className="text-[var(--color-rule-strong)]">/</span> {doc.numPages}
+          </span>
+          <PillButton
+            onClick={() => setPageNum((p) => Math.min(doc.numPages, p + 1))}
+            disabled={pageNum >= doc.numPages}
+          >
+            →
+          </PillButton>
+          <div className="ml-auto flex items-center gap-1 text-[var(--color-muted)] sm:gap-1.5">
+            <PillButton onClick={() => zoom(-0.1)}>−</PillButton>
+            {/* Hide the raw percentage on narrow screens — show a Fit button instead. */}
+            <span className="hidden w-10 text-center text-xs tabular-nums sm:inline">
+              {Math.round(scale * 100)}%
+            </span>
+            <PillButton onClick={() => zoom(0.1)}>+</PillButton>
+            <PillButton
+              onClick={() => setFitWidth(true)}
+              disabled={fitWidth}
+              title="Fit to width"
+            >
+              Fit
+            </PillButton>
+          </div>
         </div>
-      </div>
+      )}
       <div
         ref={containerRef}
         className="flex-1 overflow-auto bg-[var(--color-surface-2)] p-2 sm:p-6"

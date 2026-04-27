@@ -55,6 +55,11 @@ export default function App() {
   // loaded, on desktop only (on mobile the tab toggle is already the chrome).
   const [focus, setFocus] = useState(false);
 
+  // Mobile-only: Kindle-style auto-hiding TopBar while reading. Defaults to
+  // shown when a file first loads or the user switches tabs, then auto-hides
+  // after a short delay; tapping the top edge brings it back.
+  const [mobileChromeShown, setMobileChromeShown] = useState(true);
+
   // Stage 2 persistence. Initialized by /api/me on mount — three outcomes:
   //   - loading         (briefly, before /me returns)
   //   - no-persistence  (DB not configured on the server; Stage 1 behavior)
@@ -187,6 +192,20 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [focus]);
 
+  // Re-show the TopBar whenever the file changes or the user switches mobile
+  // tabs — those are moments where they almost certainly want controls.
+  useEffect(() => {
+    setMobileChromeShown(true);
+  }, [file?.name, mobileTab]);
+
+  // Auto-hide the TopBar a few seconds after it appears on the mobile reader.
+  // We don't auto-hide on chat (the input there is the focus) or on desktop.
+  useEffect(() => {
+    if (!isMobile || !file || mobileTab !== 'reader' || !mobileChromeShown) return;
+    const timer = window.setTimeout(() => setMobileChromeShown(false), 3500);
+    return () => window.clearTimeout(timer);
+  }, [isMobile, file, mobileTab, mobileChromeShown]);
+
   const onPdfLocation = useCallback((loc: string, text: string) => {
     setLocation(loc);
     setVisibleText(text);
@@ -281,6 +300,24 @@ export default function App() {
   const showLibrary =
     meState.kind === 'signed-in' && meState.libraryEnabled;
 
+  // Focus mode is offered whenever a file is loaded — on mobile it hides the
+  // TopBar (including tab toggle) and shows the reader full-bleed; the
+  // ExitFocusPill is how you come back.
+  const canFocus = !!file;
+  const chromeHidden = focus && canFocus;
+  // Mobile auto-hide: reader tab on mobile collapses the TopBar after a beat,
+  // and a thin tap zone at the top reveals it. This is the "Kindle subtle"
+  // mode the user asked for. Distinct from explicit focus mode (which also
+  // hides reader-internal chrome).
+  const mobileChromeAutoHidden =
+    isMobile && !!file && mobileTab === 'reader' && !mobileChromeShown;
+  // TopBar is hidden either by explicit focus or by mobile auto-hide.
+  const topBarHidden = chromeHidden || mobileChromeAutoHidden;
+  // Mobile tab toggle is suppressed in focus mode — the reader has the screen.
+  const showMobileTabs = isMobile && !!file && !chromeHidden;
+  // Reader's internal toolbar disappears in either subtle mode.
+  const hideReaderToolbar = chromeHidden || mobileChromeAutoHidden;
+
   const reader = !file ? (
     // Landing screen: file drop first, then the user's own books (with
     // progress), then the shared library. Outer div owns the scroll so all
@@ -301,6 +338,7 @@ export default function App() {
       onSelection={onSelection}
       initialRestoreKey={initialRestoreKey}
       onRestoreKey={onRestoreKey}
+      hideToolbar={hideReaderToolbar}
     />
   ) : (
     <EpubReader
@@ -309,6 +347,7 @@ export default function App() {
       onSelection={onSelection}
       initialRestoreKey={initialRestoreKey}
       onRestoreKey={onRestoreKey}
+      hideToolbar={hideReaderToolbar}
     />
   );
 
@@ -322,14 +361,6 @@ export default function App() {
       bookId={bookId}
     />
   );
-
-  // Focus mode is offered whenever a file is loaded — on mobile it hides the
-  // TopBar (including tab toggle) and shows the reader full-bleed; the
-  // ExitFocusPill is how you come back.
-  const canFocus = !!file;
-  const chromeHidden = focus && canFocus;
-  // Mobile tab toggle is suppressed in focus mode — the reader has the screen.
-  const showMobileTabs = isMobile && !!file && !chromeHidden;
 
   async function handleSignOut() {
     // Clear the signed rc_user cookie server-side, then drop local
@@ -406,7 +437,7 @@ export default function App() {
         paddingRight: 'var(--safe-right)',
       }}
     >
-      {!chromeHidden && (
+      {!topBarHidden && (
         <TopBar
           fileName={file?.name}
           onClose={file ? () => setFile(null) : undefined}
@@ -420,6 +451,21 @@ export default function App() {
         />
       )}
       {chromeHidden && <ExitFocusPill onClick={() => setFocus(false)} />}
+      {/* Mobile reveal-tap zone: invisible strip across the very top of the
+          screen that brings the TopBar back when it's auto-hidden. Sits above
+          the reader so a tap at the top fires here, not on a swipe handler. */}
+      {mobileChromeAutoHidden && (
+        <button
+          type="button"
+          onClick={() => setMobileChromeShown(true)}
+          aria-label="Show toolbar"
+          className="fixed inset-x-0 top-0 z-40"
+          style={{
+            height: 'calc(2.5rem + var(--safe-top))',
+            background: 'transparent',
+          }}
+        />
+      )}
       <main className="flex-1 overflow-hidden">
         {chromeHidden ? (
           // Focus mode (desktop + mobile): reader fills the whole page.

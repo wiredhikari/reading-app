@@ -17,6 +17,9 @@ interface Props {
   initialRestoreKey?: string | null;
   /** Emits the CFI on every location change so the caller can save it. */
   onRestoreKey?: (key: string) => void;
+  /** Hide the reader's internal toolbar (← → / chapter / Aa). The page becomes
+   *  full-bleed; navigation is via swipe + the parent's chrome on tap. */
+  hideToolbar?: boolean;
 }
 
 // The epub.js iframe can't read our CSS custom properties (it's a separate
@@ -66,6 +69,7 @@ export default function EpubReader({
   onSelection,
   initialRestoreKey,
   onRestoreKey,
+  hideToolbar,
 }: Props) {
   const viewerRef = useRef<HTMLDivElement>(null);
   const bookRef = useRef<Book | null>(null);
@@ -182,27 +186,29 @@ export default function EpubReader({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-2 border-b border-[var(--color-rule)] bg-[var(--color-paper)] px-3 py-2 text-sm sm:px-4">
-        <button
-          onClick={prev}
-          className="rounded-full border border-[var(--color-rule)] bg-[var(--color-surface)] px-2.5 py-1 text-[var(--color-ink)] hover:border-[var(--color-accent)]"
-        >
-          ←
-        </button>
-        <button
-          onClick={next}
-          className="rounded-full border border-[var(--color-rule)] bg-[var(--color-surface)] px-2.5 py-1 text-[var(--color-ink)] hover:border-[var(--color-accent)]"
-        >
-          →
-        </button>
-        <span className="hidden min-w-0 truncate text-[var(--color-muted)] sm:inline">
-          {meta.title
-            ? `${meta.title}${meta.author ? ' — ' + meta.author : ''}`
-            : 'EPUB'}
-        </span>
-        <span className="ml-auto truncate text-xs text-[var(--color-muted)]">{chapter}</span>
-        <TypographyMenu value={typography} onChange={setTypography} />
-      </div>
+      {!hideToolbar && (
+        <div className="flex items-center gap-2 border-b border-[var(--color-rule)] bg-[var(--color-paper)] px-3 py-2 text-sm sm:px-4">
+          <button
+            onClick={prev}
+            className="rounded-full border border-[var(--color-rule)] bg-[var(--color-surface)] px-2.5 py-1 text-[var(--color-ink)] hover:border-[var(--color-accent)]"
+          >
+            ←
+          </button>
+          <button
+            onClick={next}
+            className="rounded-full border border-[var(--color-rule)] bg-[var(--color-surface)] px-2.5 py-1 text-[var(--color-ink)] hover:border-[var(--color-accent)]"
+          >
+            →
+          </button>
+          <span className="hidden min-w-0 truncate text-[var(--color-muted)] sm:inline">
+            {meta.title
+              ? `${meta.title}${meta.author ? ' — ' + meta.author : ''}`
+              : 'EPUB'}
+          </span>
+          <span className="ml-auto truncate text-xs text-[var(--color-muted)]">{chapter}</span>
+          <TypographyMenu value={typography} onChange={setTypography} />
+        </div>
+      )}
       <div className="flex-1 overflow-hidden bg-[var(--color-paper)]">
         <div ref={viewerRef} className="mx-auto h-full max-w-3xl px-2" />
       </div>
