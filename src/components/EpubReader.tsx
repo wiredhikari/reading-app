@@ -22,19 +22,33 @@ interface Props {
   hideToolbar?: boolean;
 }
 
+// Shared text-shaping rules — these make the page read like a typeset book
+// rather than a word-processor doc. Justify + hyphenation are what Kindle
+// uses by default, and they're the biggest single wins for body text.
+const BODY_TEXT_FEEL = {
+  'text-align': 'justify',
+  'hyphens': 'auto',
+  '-webkit-hyphens': 'auto',
+  'orphans': '2',
+  'widows': '2',
+  // A touch more letter-spacing in body — small, but the eye picks it up.
+  'letter-spacing': '0.005em',
+};
+
 // The epub.js iframe can't read our CSS custom properties (it's a separate
 // document), so we hand it a concrete palette per theme.
 const LIGHT_THEME = {
   body: {
     'font-family': '"Iowan Old Style", "Charter", "Georgia", serif',
     'line-height': '1.7',
-    color: '#1a1a1a',
-    background: '#fbfaf6',
+    color: '#14110d',
+    background: '#faf9f5',
     padding: '0 8px',
+    ...BODY_TEXT_FEEL,
   },
   p: { 'margin-bottom': '1em' },
-  a: { color: '#5b4a2e' },
-  '::selection': { background: 'rgba(91, 74, 46, 0.25)' },
+  a: { color: '#5c1f1c' },
+  '::selection': { background: 'rgba(92, 31, 28, 0.18)' },
 };
 
 const SEPIA_THEME = {
@@ -42,25 +56,27 @@ const SEPIA_THEME = {
     'font-family': '"Iowan Old Style", "Charter", "Georgia", serif',
     'line-height': '1.75',
     color: '#2a1f12',
-    background: '#ecdec2',
+    background: '#e8e0cf',
     padding: '0 8px',
+    ...BODY_TEXT_FEEL,
   },
   p: { 'margin-bottom': '1em' },
-  a: { color: '#a35a2b' },
-  '::selection': { background: 'rgba(163, 90, 43, 0.22)' },
+  a: { color: '#5c1f1c' },
+  '::selection': { background: 'rgba(92, 31, 28, 0.18)' },
 };
 
 const DARK_THEME = {
   body: {
     'font-family': '"Iowan Old Style", "Charter", "Georgia", serif',
     'line-height': '1.7',
-    color: '#e8e6df',
-    background: '#14141a',
+    color: '#e8e0cf',
+    background: '#0a0e14',
     padding: '0 8px',
+    ...BODY_TEXT_FEEL,
   },
   p: { 'margin-bottom': '1em' },
-  a: { color: '#c9b48a' },
-  '::selection': { background: 'rgba(201, 180, 138, 0.3)' },
+  a: { color: '#c9a96e' },
+  '::selection': { background: 'rgba(201, 169, 110, 0.28)' },
 };
 
 export default function EpubReader({

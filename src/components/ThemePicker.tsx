@@ -48,10 +48,10 @@ export default function ThemePicker() {
         aria-label="Choose theme"
         aria-haspopup="listbox"
         aria-expanded={open}
-        className="grid h-8 w-8 place-items-center rounded-full border border-[var(--color-rule)] bg-[var(--color-surface)] transition-colors hover:border-[var(--color-accent)]"
+        className="grid h-10 w-10 place-items-center rounded-full border border-[var(--color-rule)] bg-[var(--color-surface)] transition-colors hover:border-[var(--color-accent)] sm:h-8 sm:w-8"
         style={{ boxShadow: 'var(--shadow-soft)' }}
       >
-        <ThemeSwatch theme={theme} size={18} />
+        <ThemeSwatch theme={theme} size={20} />
       </button>
 
       {open && (

@@ -7,6 +7,7 @@ import SplitPane from './components/SplitPane';
 import TopBar, { type MobileTab } from './components/TopBar';
 import UsernamePicker from './components/UsernamePicker';
 import LibraryView from './components/LibraryView';
+import BottomTabBar from './components/BottomTabBar';
 import { useMediaQuery } from './lib/useMediaQuery';
 import { MOBILE_MEDIA_QUERY } from './lib/constants';
 import type { ReadingContext } from './lib/systemPrompt';
@@ -192,14 +193,16 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [focus]);
 
-  // Re-show the TopBar whenever the file changes or the user switches mobile
-  // tabs — those are moments where they almost certainly want controls.
+  // The reader tab on mobile is the only place we keep the TopBar hidden by
+  // default — the user explicitly asked for an unreduced reading view. Every
+  // other state (no file, chat tab, desktop) starts with chrome visible.
   useEffect(() => {
-    setMobileChromeShown(true);
-  }, [file?.name, mobileTab]);
+    const hideOnEntry = isMobile && !!file && mobileTab === 'reader';
+    setMobileChromeShown(!hideOnEntry);
+  }, [file?.name, mobileTab, isMobile]);
 
-  // Auto-hide the TopBar a few seconds after it appears on the mobile reader.
-  // We don't auto-hide on chat (the input there is the focus) or on desktop.
+  // After the TopBar is summoned via the top-edge tap, auto-hide it again
+  // so the page goes back to clean. Only on the mobile reader.
   useEffect(() => {
     if (!isMobile || !file || mobileTab !== 'reader' || !mobileChromeShown) return;
     const timer = window.setTimeout(() => setMobileChromeShown(false), 3500);
@@ -313,8 +316,14 @@ export default function App() {
     isMobile && !!file && mobileTab === 'reader' && !mobileChromeShown;
   // TopBar is hidden either by explicit focus or by mobile auto-hide.
   const topBarHidden = chromeHidden || mobileChromeAutoHidden;
-  // Mobile tab toggle is suppressed in focus mode — the reader has the screen.
-  const showMobileTabs = isMobile && !!file && !chromeHidden;
+  // The Read/Chat tab toggle now lives in the bottom tab bar on mobile —
+  // we no longer surface it inside the TopBar. Desktop never had it.
+  const showMobileTabs = false;
+  // Bottom tab bar rides with the top chrome — both visible together, both
+  // hidden together. The reader gets the entire viewport while the user is
+  // actually reading; one tap at the top brings the navigation back.
+  const showBottomBar =
+    isMobile && !!file && !chromeHidden && !mobileChromeAutoHidden;
   // Reader's internal toolbar disappears in either subtle mode.
   const hideReaderToolbar = chromeHidden || mobileChromeAutoHidden;
 
@@ -466,7 +475,24 @@ export default function App() {
           }}
         />
       )}
-      <main className="flex-1 overflow-hidden">
+      {showBottomBar && (
+        <BottomTabBar
+          value={mobileTab}
+          onChange={setMobileTab}
+          unreadChat={unreadChat}
+        />
+      )}
+      <main
+        className="flex-1 overflow-hidden"
+        // Reserve room for the bottom tab bar so content under it stays
+        // legible. The bar itself paints over the gap, but having scroll
+        // containers know about it prevents the last row from hiding.
+        style={
+          showBottomBar
+            ? { paddingBottom: 'calc(3.75rem + var(--safe-bottom))' }
+            : undefined
+        }
+      >
         {chromeHidden ? (
           // Focus mode (desktop + mobile): reader fills the whole page.
           // Chat is unmounted here — on re-entry the tab layout is restored;
@@ -480,8 +506,7 @@ export default function App() {
         ) : isMobile ? (
           !file ? (
             // Landing screen: no chat pane below, so we need to respect the
-            // iOS home indicator ourselves. The reader pane takes care of its
-            // own bottom when a file is loaded (ChatInput has safe-bottom).
+            // iOS home indicator ourselves.
             <div
               className="h-full w-full"
               style={{ paddingBottom: 'var(--safe-bottom)' }}
@@ -494,15 +519,13 @@ export default function App() {
             // preserved when you switch tabs.
             <div className="relative h-full w-full">
               <div
-                className={`absolute inset-0 ${mobileTab === 'reader' ? '' : 'hidden'}`}
+                className="tab-pane absolute inset-0"
                 aria-hidden={mobileTab !== 'reader'}
-                // Reader doesn't have a bottom input, so respect the home indicator here.
-                style={{ paddingBottom: 'var(--safe-bottom)' }}
               >
                 {reader}
               </div>
               <div
-                className={`absolute inset-0 ${mobileTab === 'chat' ? '' : 'hidden'}`}
+                className="tab-pane absolute inset-0"
                 aria-hidden={mobileTab !== 'chat'}
               >
                 {chat}

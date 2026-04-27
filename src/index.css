@@ -471,6 +471,12 @@ html, body, #root {
   height: 100%;
 }
 
+html {
+  /* Don't let iOS bump font sizes on rotation. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
   background: var(--color-paper);
@@ -479,6 +485,10 @@ body {
   font-feature-settings: "ss01", "cv11";
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* Kill the gray flash on tap that gives every web app away. */
+  -webkit-tap-highlight-color: transparent;
+  /* iOS: prevent the default body bounce — we own scroll on the inner panes. */
+  overscroll-behavior-y: contain;
 
   /* iOS safe areas — referenced via env() in components */
   --safe-top: env(safe-area-inset-top, 0px);
@@ -502,6 +512,101 @@ body {
 .reader-surface,
 .reader-surface * {
   touch-action: pan-y pinch-zoom;
+}
+
+/* ===========================================================================
+   iOS-feel primitives
+   --------------------------------------------------------------------------
+   Globals that quietly turn the web defaults into something that reads as a
+   native app on iPhone. Applied broadly; opt-out via `.allow-select` on the
+   one surface (the reader content) where text selection actually matters.
+   =========================================================================== */
+
+/* No accidental text selection on chrome — buttons, headers, tab bars. */
+button,
+[role="button"],
+header,
+nav,
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Spring-y press affordance. Buttons feel like they have weight. */
+button,
+[role="button"] {
+  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.2, 1),
+              opacity 120ms ease,
+              background 160ms ease,
+              border-color 160ms ease,
+              color 160ms ease;
+  touch-action: manipulation;
+}
+button:active,
+[role="button"]:active {
+  transform: scale(0.96);
+}
+
+/* iOS auto-zooms inputs whose font-size is < 16px. Force at least 16. */
+input,
+textarea {
+  font-size: 16px;
+}
+
+/* Reader content is the only place where text selection should feel obvious. */
+.allow-select,
+.allow-select * {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* When the bottom tab bar is visible, give scroll containers room so the
+   last row isn't covered by the bar. Components opt in via `pb-safe-tab`. */
+.pb-safe-tab {
+  padding-bottom: calc(4.5rem + var(--safe-bottom));
+}
+
+/* iOS-style sheet entry. Used by modals on mobile. */
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+.sheet-enter {
+  animation: sheet-up 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Kindle-style page turn — a quick, almost subliminal fade-in. */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-page-in {
+  animation: page-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Used by the bottom-of-page progress thread. A 1px line tinted with the
+   theme accent — invisible until you look for it. */
+.reader-progress {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--color-accent) 0%,
+    var(--color-accent) var(--p, 0%),
+    transparent var(--p, 0%)
+  );
+}
+
+/* Smooth fade for tab swap on mobile. The inactive pane fades to invisible
+   while staying mounted, so chat scroll/reader scroll are preserved. */
+.tab-pane {
+  transition: opacity 220ms ease;
+}
+.tab-pane[aria-hidden="true"] {
+  opacity: 0;
+  pointer-events: none;
+}
+.tab-pane[aria-hidden="false"] {
+  opacity: 1;
 }
 
 /* Subtle warm mesh on the background — barely there but adds depth */

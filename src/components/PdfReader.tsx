@@ -388,7 +388,11 @@ export default function PdfReader({
         className="flex-1 overflow-auto bg-[var(--color-surface-2)] p-2 sm:p-6"
       >
         <div
-          className="relative mx-auto inline-block rounded-md bg-white"
+          // `key` re-runs the entry animation on every page change, so the
+          // page fades in instead of snapping. Subtle but the eye reads it
+          // as a turn rather than a swap.
+          key={pageNum}
+          className="relative mx-auto inline-block rounded-md bg-white animate-page-in allow-select"
           style={{ filter: 'var(--pdf-filter)', boxShadow: 'var(--shadow-card)' }}
         >
           <canvas ref={canvasRef} />
@@ -399,6 +403,20 @@ export default function PdfReader({
           />
         </div>
       </div>
+      {/* Subtle progress thread along the bottom — Kindle-style. Width is
+          driven by the current page over total. Runs even while the toolbar
+          is hidden, so the reader always knows where they are. */}
+      <div
+        aria-hidden
+        className="reader-progress shrink-0"
+        style={
+          {
+            ['--p' as string]: `${
+              doc.numPages > 0 ? (pageNum / doc.numPages) * 100 : 0
+            }%`,
+          } as React.CSSProperties
+        }
+      />
     </div>
   );
 }

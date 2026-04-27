@@ -55,7 +55,7 @@ export default function TopBar({
             onClick={onEnterFocus}
             title="Focus mode — hide chrome"
             aria-label="Enter focus mode"
-            className="grid h-8 w-8 place-items-center rounded-full border border-[var(--color-rule)] bg-[var(--color-surface)] text-[var(--color-muted)] transition-colors hover:text-[var(--color-ink)]"
+            className="grid h-10 w-10 place-items-center rounded-full border border-[var(--color-rule)] bg-[var(--color-surface)] text-[var(--color-muted)] transition-colors hover:text-[var(--color-ink)] sm:h-8 sm:w-8"
             style={{ boxShadow: 'var(--shadow-soft)' }}
           >
             <FocusIcon />
@@ -64,7 +64,7 @@ export default function TopBar({
         {onClose && (
           <button
             onClick={onClose}
-            className="rounded-md px-2 py-1 text-xs text-[var(--color-muted)] hover:text-[var(--color-ink)]"
+            className="rounded-md px-3 py-2 text-xs font-medium text-[var(--color-muted)] hover:text-[var(--color-ink)] sm:py-1"
           >
             Close
           </button>
@@ -113,7 +113,7 @@ function AccountMenu({
         aria-haspopup="menu"
         aria-expanded={open}
         title={user.username}
-        className="grid h-8 w-8 place-items-center rounded-full border border-[var(--color-rule)] bg-[var(--color-surface)] text-[11px] font-medium uppercase tracking-wider text-[var(--color-ink)] transition-colors hover:border-[var(--color-accent)]"
+        className="grid h-10 w-10 place-items-center rounded-full border border-[var(--color-rule)] bg-[var(--color-surface)] text-[11px] font-medium uppercase tracking-wider text-[var(--color-ink)] transition-colors hover:border-[var(--color-accent)] sm:h-8 sm:w-8"
         style={{ boxShadow: 'var(--shadow-soft)' }}
       >
         {initials}
