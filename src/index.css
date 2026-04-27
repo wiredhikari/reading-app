@@ -13,109 +13,130 @@
    only ever reference the var, never a literal color, so theme swaps are total.
    =========================================================================== */
 
+/* ===========================================================================
+   Stoa palette
+   --------------------------------------------------------------------------
+   The brand reads off the logo: deep midnight navy as the field, cream stone
+   for the colonnade, deep wine for the door, antique gold for the inscription.
+   Every theme draws from those four notes; only the assignment changes.
+
+     midnight  #0a0e14   (logo background — primary in dark)
+     cream     #e8e0cf   (logo columns — primary in sepia, accent in dark)
+     ivory     #faf9f5   (light surface base)
+     wine      #5c1f1c   (logo door — primary accent in light/sepia)
+     gold      #c9a96e   (logo inscription — accent in dark)
+   =========================================================================== */
+
 :root,
 :root[data-theme="light"] {
+  /* Marble — bright daylight on the colonnade */
+
   /* Surfaces */
-  --color-paper:        #f4ede0;   /* page */
-  --color-surface:      #fffcf6;   /* raised */
-  --color-surface-2:    #faf3e6;   /* sunken */
-  --color-glass:        rgba(255, 252, 246, 0.72);
+  --color-paper:        #faf9f5;   /* page (ivory) */
+  --color-surface:      #ffffff;   /* raised */
+  --color-surface-2:    #f1ecde;   /* sunken — leans toward the cream of the columns */
+  --color-glass:        rgba(255, 255, 255, 0.74);
 
   /* Ink */
-  --color-ink:          #1c1612;
-  --color-ink-soft:     #3a3128;
-  --color-muted:        #6e645a;
+  --color-ink:          #14110d;
+  --color-ink-soft:     #3a342c;
+  --color-muted:        #6f6555;
 
   /* Lines */
-  --color-rule:         #e3d8c5;
-  --color-rule-strong:  #c9bba0;
+  --color-rule:         #e8e0cf;
+  --color-rule-strong:  #cdc1a8;
 
-  /* Accent */
-  --color-accent:       #b8794a;
-  --color-accent-soft:  rgba(184, 121, 74, 0.14);
-  --color-accent-glow:  rgba(184, 121, 74, 0.35);
+  /* Accent — the door */
+  --color-accent:       #5c1f1c;
+  --color-accent-soft:  rgba(92, 31, 28, 0.10);
+  --color-accent-glow:  rgba(92, 31, 28, 0.28);
 
   /* Misc */
-  --color-user-bubble:  #fffcf6;
-  --color-danger:       #b13e3e;
-  --color-danger-bg:    rgba(177, 62, 62, 0.08);
+  --color-user-bubble:  #ffffff;
+  --color-danger:       #8a2727;
+  --color-danger-bg:    rgba(138, 39, 39, 0.08);
   --pdf-filter:         none;
 
-  /* Shadows — multi-layer, warm-toned */
+  /* Shadows — soft, warm, never heavy */
   --shadow-soft:
-    0 1px 1px rgba(28, 22, 18, 0.04),
-    0 4px 12px rgba(28, 22, 18, 0.06);
+    0 1px 1px rgba(20, 17, 13, 0.04),
+    0 4px 12px rgba(20, 17, 13, 0.06);
   --shadow-card:
-    0 1px 2px rgba(28, 22, 18, 0.05),
-    0 8px 24px rgba(28, 22, 18, 0.08);
+    0 1px 2px rgba(20, 17, 13, 0.05),
+    0 8px 24px rgba(20, 17, 13, 0.08);
   --shadow-glow:
     0 0 0 1px var(--color-rule),
-    0 8px 32px rgba(184, 121, 74, 0.12);
+    0 8px 32px rgba(92, 31, 28, 0.12);
 
   color-scheme: light;
 }
 
 :root[data-theme="sepia"] {
-  /* A deeper, warmer paper — closer to an aged Kindle page.
-     Saturation is intentionally a touch higher than the default light
-     theme; that's what makes reading feel "sepia" rather than just beige. */
-  --color-paper:        #ecdec2;
-  --color-surface:      #f4e9d1;
-  --color-surface-2:    #e4d3b0;
-  --color-glass:        rgba(244, 233, 209, 0.78);
+  /* Parchment — sitting between the columns, reading at noon. The cream of
+     the colonnade IS the page; ink is the deep wood-stain of the door. */
+
+  --color-paper:        #e8e0cf;
+  --color-surface:      #efe8d6;
+  --color-surface-2:    #ddd3bd;
+  --color-glass:        rgba(239, 232, 214, 0.78);
 
   --color-ink:          #2a1f12;
   --color-ink-soft:     #4a3a26;
   --color-muted:        #7a6848;
 
-  --color-rule:         #d6c196;
-  --color-rule-strong:  #bfa876;
+  --color-rule:         #d4c9b1;
+  --color-rule-strong:  #bfb094;
 
-  --color-accent:       #a35a2b;
-  --color-accent-soft:  rgba(163, 90, 43, 0.15);
-  --color-accent-glow:  rgba(163, 90, 43, 0.35);
+  --color-accent:       #5c1f1c;
+  --color-accent-soft:  rgba(92, 31, 28, 0.12);
+  --color-accent-glow:  rgba(92, 31, 28, 0.30);
 
-  --color-user-bubble:  #f4e9d1;
-  --color-danger:       #9a3030;
-  --color-danger-bg:    rgba(154, 48, 48, 0.09);
+  --color-user-bubble:  #efe8d6;
+  --color-danger:       #7a2222;
+  --color-danger-bg:    rgba(122, 34, 34, 0.10);
 
-  /* Slight warm wash on PDF pages — keeps whites from glaring. */
-  --pdf-filter: sepia(0.25) saturate(1.05);
+  /* A whisper of warmth so PDF whites don't glare against the cream page. */
+  --pdf-filter: sepia(0.18) saturate(1.04);
 
   --shadow-soft:
-    0 1px 1px rgba(42, 31, 18, 0.05),
-    0 4px 12px rgba(42, 31, 18, 0.07);
+    0 1px 1px rgba(42, 31, 18, 0.06),
+    0 4px 12px rgba(42, 31, 18, 0.08);
   --shadow-card:
-    0 1px 2px rgba(42, 31, 18, 0.06),
-    0 8px 24px rgba(42, 31, 18, 0.10);
+    0 1px 2px rgba(42, 31, 18, 0.07),
+    0 8px 24px rgba(42, 31, 18, 0.11);
   --shadow-glow:
     0 0 0 1px var(--color-rule),
-    0 8px 32px rgba(163, 90, 43, 0.14);
+    0 8px 32px rgba(92, 31, 28, 0.14);
 
   color-scheme: light;
 }
 
 :root[data-theme="dark"] {
-  --color-paper:        #0f0e12;
-  --color-surface:      #19171d;
-  --color-surface-2:    #14131a;
-  --color-glass:        rgba(25, 23, 29, 0.72);
+  /* Midnight — the temple silhouetted at night. Navy field, cream type,
+     gold inscription. This is the logo, full-bleed. */
 
-  --color-ink:          #f3ece0;
-  --color-ink-soft:     #d4ccbf;
-  --color-muted:        #8a8079;
+  --color-paper:        #0a0e14;
+  --color-surface:      #131822;
+  --color-surface-2:    #0e131c;
+  --color-glass:        rgba(19, 24, 34, 0.72);
 
-  --color-rule:         #2a262e;
-  --color-rule-strong:  #3a3640;
+  --color-ink:          #e8e0cf;
+  --color-ink-soft:     #c4bca9;
+  --color-muted:        #847d6e;
 
-  --color-accent:       #d99868;
-  --color-accent-soft:  rgba(217, 152, 104, 0.16);
-  --color-accent-glow:  rgba(217, 152, 104, 0.35);
+  --color-rule:         #1f2632;
+  --color-rule-strong:  #2c3442;
 
-  --color-user-bubble:  #20202a;
-  --color-danger:       #e08585;
-  --color-danger-bg:    rgba(224, 133, 133, 0.10);
+  /* Gold inscription becomes the accent at night. */
+  --color-accent:       #c9a96e;
+  --color-accent-soft:  rgba(201, 169, 110, 0.14);
+  --color-accent-glow:  rgba(201, 169, 110, 0.32);
 
+  --color-user-bubble:  #1a212d;
+  --color-danger:       #e09a9a;
+  --color-danger-bg:    rgba(224, 154, 154, 0.10);
+
+  /* PDFs invert for dark reading; hue-rotate keeps colors recognizable. */
   --pdf-filter: invert(0.92) hue-rotate(180deg);
 
   --shadow-soft:
@@ -126,7 +147,7 @@
     0 12px 32px rgba(0, 0, 0, 0.5);
   --shadow-glow:
     0 0 0 1px var(--color-rule),
-    0 8px 32px rgba(217, 152, 104, 0.14);
+    0 8px 32px rgba(201, 169, 110, 0.16);
 
   color-scheme: dark;
 }

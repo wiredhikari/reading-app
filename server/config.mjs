@@ -92,7 +92,7 @@ export const config = {
 
 export function warnIfMissingKey() {
   if (!config.anthropicApiKey) {
-    console.error('\n[reading-companion] ANTHROPIC_API_KEY is not set.');
+    console.error('\n[stoa] ANTHROPIC_API_KEY is not set.');
     console.error('  Copy .env.example to .env and fill in your key from https://console.anthropic.com/\n');
   }
 }
@@ -111,13 +111,13 @@ export function checkAuthConfig() {
   if (problems.length === 0) return;
 
   if (config.isProduction) {
-    console.error('\n[reading-companion] refusing to start — auth misconfigured:');
+    console.error('\n[stoa] refusing to start — auth misconfigured:');
     for (const p of problems) console.error('  - ' + p);
     console.error('\n  Set these in your host\'s environment. See .env.example.\n');
     process.exit(1);
   }
 
-  console.warn('\n[reading-companion] auth not fully configured (dev mode):');
+  console.warn('\n[stoa] auth not fully configured (dev mode):');
   for (const p of problems) console.warn('  - ' + p);
   console.warn('  The gate will still run but with insecure defaults. Do NOT deploy like this.\n');
 }

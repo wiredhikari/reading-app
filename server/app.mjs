@@ -46,7 +46,7 @@ export function createApp() {
     res.on('finish', () => {
       const ms = Number(process.hrtime.bigint() - started) / 1e6;
       console.log(
-        `[reading-companion] ${req.method} ${req.originalUrl} ${res.statusCode} ${ms.toFixed(1)}ms`,
+        `[stoa] ${req.method} ${req.originalUrl} ${res.statusCode} ${ms.toFixed(1)}ms`,
       );
     });
     next();

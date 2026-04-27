@@ -17,7 +17,7 @@ const distPath = path.resolve(__dirname, '..', config.distDir);
 export function mountStaticAssets(app) {
   if (!fs.existsSync(distPath)) {
     console.warn(
-      `[reading-companion] dist directory not found at ${distPath}. Run \`npm run build\` first.`,
+      `[stoa] dist directory not found at ${distPath}. Run \`npm run build\` first.`,
     );
     return;
   }
@@ -40,5 +40,5 @@ export function mountStaticAssets(app) {
     res.sendFile(path.join(distPath, 'index.html'));
   });
 
-  console.log(`[reading-companion] serving static frontend from ${distPath}`);
+  console.log(`[stoa] serving static frontend from ${distPath}`);
 }

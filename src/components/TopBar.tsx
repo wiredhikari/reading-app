@@ -222,14 +222,19 @@ function Brand() {
   return (
     <div className="flex items-center gap-2.5">
       <Mark />
-      <span className="font-display text-[17px] font-medium tracking-tight text-[var(--color-ink)]">
-        Reading Companion
+      <span className="flex items-baseline gap-1.5">
+        <span className="font-display text-[18px] font-semibold tracking-[0.18em] text-[var(--color-ink)]">
+          STOA
+        </span>
+        <span className="hidden text-[11px] uppercase tracking-[0.18em] text-[var(--color-muted)] sm:inline">
+          the reading room
+        </span>
       </span>
     </div>
   );
 }
 
-/** Tiny serif "RC" mark inside a softly glowing chip. */
+/** Stoa colonnade mark — the logo, simplified for a 28px chip. */
 function Mark() {
   return (
     <span
@@ -237,12 +242,25 @@ function Mark() {
       style={{ boxShadow: 'var(--shadow-soft)' }}
       aria-hidden
     >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        {/* Pediment */}
         <path
-          d="M5 4h6.4c2.3 0 3.9 1.4 3.9 3.5 0 1.7-1 2.9-2.6 3.3l3.3 5.2H13.5l-2.9-4.8H8v4.8H5V4Zm3 5.7h3c1 0 1.6-.5 1.6-1.4S12 7 11 7H8v2.7Z"
-          fill="var(--color-accent)"
+          d="M3 9 L12 3 L21 9 Z"
+          fill="none"
+          stroke="var(--color-ink)"
+          strokeWidth="1.4"
+          strokeLinejoin="round"
         />
-        <circle cx="18.5" cy="18.5" r="1.6" fill="var(--color-accent)" opacity="0.7" />
+        {/* Architrave */}
+        <rect x="4" y="9.4" width="16" height="1.6" fill="var(--color-ink)" />
+        {/* Columns (3 visible at this size) */}
+        <rect x="5.5" y="11" width="1.1" height="8" fill="var(--color-ink)" />
+        <rect x="11.5" y="11" width="1.1" height="8" fill="var(--color-ink)" />
+        <rect x="17.4" y="11" width="1.1" height="8" fill="var(--color-ink)" />
+        {/* Door */}
+        <rect x="8.5" y="13" width="7" height="6" fill="var(--color-accent)" />
+        {/* Stylobate */}
+        <rect x="3.5" y="19.2" width="17" height="1.3" fill="var(--color-ink)" />
       </svg>
     </span>
   );

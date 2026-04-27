@@ -1,11 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 
-// Three-way theme:
-//   light  — airy cream, everyday app feel
-//   sepia  — warmer, deeper paper — reading mode
-//   dark   — night reading; low-glow charcoal
+// Three Stoa themes — matched to the logo's palette:
+//   light  — Marble:    daylight on the colonnade (ivory + wine)
+//   sepia  — Parchment: reading between the columns (cream + wine)
+//   dark   — Midnight:  the temple at night (navy + cream + gold)
 export type Theme = 'light' | 'sepia' | 'dark';
-const STORAGE_KEY = 'reading-companion:theme';
+const STORAGE_KEY = 'stoa:theme';
 
 // Order for the cycle toggle — matches sun → paper → moon metaphor.
 const THEME_CYCLE: Theme[] = ['light', 'sepia', 'dark'];
@@ -24,9 +24,9 @@ function readInitialTheme(): Theme {
 
 // iOS status bar / Android chrome — keep this in sync with --color-paper.
 const THEME_META_COLOR: Record<Theme, string> = {
-  light: '#f4ede0',
-  sepia: '#ecdec2',
-  dark: '#14141a',
+  light: '#faf9f5', // ivory
+  sepia: '#e8e0cf', // cream
+  dark: '#0a0e14',  // midnight
 };
 
 function applyTheme(theme: Theme) {

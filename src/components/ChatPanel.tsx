@@ -123,7 +123,7 @@ export default function ChatPanel({
       <header className="flex items-center justify-between border-b border-[var(--color-rule)] px-5 py-3">
         <div className="min-w-0">
           <div className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-muted)]">
-            Companion
+            Stoa
           </div>
           <div className="mt-0.5 truncate text-sm text-[var(--color-ink)]">{headerLabel}</div>
         </div>

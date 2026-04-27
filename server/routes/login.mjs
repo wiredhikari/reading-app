@@ -19,7 +19,7 @@ const LOGIN_HTML = /* html */ `<!DOCTYPE html>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Reading Companion</title>
+  <title>Stoa — The Reading Room</title>
   <style>
     :root { color-scheme: light dark; }
     * { box-sizing: border-box; }
@@ -29,12 +29,13 @@ const LOGIN_HTML = /* html */ `<!DOCTYPE html>
       display: grid;
       place-items: center;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-      background: #faf7f2;
-      color: #1a1612;
+      background: #faf9f5;
+      color: #14110d;
       padding: 1rem;
+      letter-spacing: -0.005em;
     }
     @media (prefers-color-scheme: dark) {
-      body { background: #171411; color: #ede8e0; }
+      body { background: #0a0e14; color: #e8e0cf; }
     }
     .card {
       width: 100%;
@@ -46,7 +47,20 @@ const LOGIN_HTML = /* html */ `<!DOCTYPE html>
     @media (prefers-color-scheme: dark) {
       .card { background: rgba(255,255,255,0.04); }
     }
-    h1 { font-size: 1.15rem; margin: 0 0 0.35rem; font-weight: 600; letter-spacing: -0.01em; }
+    .brand {
+      font-size: 0.7rem;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      opacity: 0.6;
+      margin-bottom: 0.4rem;
+    }
+    h1 {
+      font-family: "Fraunces", Georgia, serif;
+      font-size: 1.4rem;
+      margin: 0 0 0.4rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+    }
     p { margin: 0 0 1.25rem; opacity: 0.7; font-size: 0.9rem; }
     form { display: flex; flex-direction: column; gap: 0.6rem; }
     input, button {
@@ -63,29 +77,35 @@ const LOGIN_HTML = /* html */ `<!DOCTYPE html>
     @media (prefers-color-scheme: dark) {
       input { border-color: rgba(255,255,255,0.12); }
     }
-    input:focus { outline: 2px solid #8a6d3b; outline-offset: 1px; }
+    input:focus { outline: 2px solid #5c1f1c; outline-offset: 1px; }
     button {
       border: 0;
-      background: #8a6d3b;
-      color: #fff;
+      background: #5c1f1c;
+      color: #faf9f5;
       cursor: pointer;
       font-weight: 500;
     }
-    button:hover { background: #735a31; }
+    button:hover { background: #4a1815; }
     button:disabled { opacity: 0.6; cursor: default; }
+    @media (prefers-color-scheme: dark) {
+      input:focus { outline-color: #c9a96e; }
+      button { background: #c9a96e; color: #0a0e14; }
+      button:hover { background: #b89557; }
+    }
     .error {
       color: #b00;
       font-size: 0.85rem;
       margin-top: 0.4rem;
       min-height: 1.2em;
     }
-    @media (prefers-color-scheme: dark) { .error { color: #f87171; } }
+    @media (prefers-color-scheme: dark) { .error { color: #e09a9a; } }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Reading Companion</h1>
-    <p>Enter the shared password to continue.</p>
+    <div class="brand">The reading room</div>
+    <h1>STOA</h1>
+    <p>Enter the password to continue.</p>
     <form id="f">
       <input type="password" name="password" placeholder="Password" autofocus required autocomplete="current-password" />
       <button type="submit" id="b">Continue</button>

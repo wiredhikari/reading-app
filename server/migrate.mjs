@@ -16,7 +16,7 @@ const MIGRATIONS_DIR = join(__dirname, 'migrations');
  */
 export async function runMigrations() {
   if (!hasDatabase()) {
-    console.log('[reading-companion] no DATABASE_URL set — skipping migrations.');
+    console.log('[stoa] no DATABASE_URL set — skipping migrations.');
     return false;
   }
 
@@ -45,7 +45,7 @@ export async function runMigrations() {
     for (const name of files) {
       if (applied.has(name)) continue;
       const sql = await readFile(join(MIGRATIONS_DIR, name), 'utf8');
-      console.log(`[reading-companion] applying migration: ${name}`);
+      console.log(`[stoa] applying migration: ${name}`);
       await client.query('begin');
       try {
         await client.query(sql);
@@ -58,8 +58,8 @@ export async function runMigrations() {
       ran++;
     }
 
-    if (ran > 0) console.log(`[reading-companion] applied ${ran} migration(s).`);
-    else console.log('[reading-companion] no new migrations.');
+    if (ran > 0) console.log(`[stoa] applied ${ran} migration(s).`);
+    else console.log('[stoa] no new migrations.');
 
     await client.query('select pg_advisory_unlock($1)', [42]);
     return true;

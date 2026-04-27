@@ -36,22 +36,22 @@ export default function FileDrop({ onFile }: Props) {
         }`}
         style={{ boxShadow: dragOver ? 'var(--shadow-glow)' : 'var(--shadow-card)' }}
       >
-        <Eyebrow>An AI for serious reading</Eyebrow>
+        <Eyebrow>The reading room</Eyebrow>
 
         <h1
           className="font-display text-[2.25rem] font-light leading-[1.05] tracking-tight text-[var(--color-ink)] sm:text-[2.5rem]"
           style={{ fontStyle: 'normal' }}
         >
-          A quiet companion
+          A place to think
           <br />
           <em className="font-medium" style={{ fontStyle: 'italic', color: 'var(--color-accent)' }}>
-            for difficult texts.
+            with the text.
           </em>
         </h1>
 
         <p className="mx-auto mt-5 max-w-sm text-[15px] leading-relaxed text-[var(--color-muted)]">
-          Open a PDF or EPUB. Read on the left. Ask anything on the right — short questions get short
-          answers; the rest, real engagement.
+          Open a PDF or EPUB. Read on the left, ask on the right. Your library, progress, and notes
+          travel with you across devices.
         </p>
 
         <div className="mt-7 flex flex-col items-center gap-2">
@@ -78,7 +78,7 @@ export default function FileDrop({ onFile }: Props) {
         />
 
         <div className="mt-8 border-t border-[var(--color-rule)] pt-4 text-[11px] uppercase tracking-[0.18em] text-[var(--color-muted)]">
-          PDF · EPUB · stays on your machine
+          PDF · EPUB · synced across your devices
         </div>
       </div>
     </div>

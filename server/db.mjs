@@ -43,7 +43,7 @@ export function getPool() {
   });
 
   _pool.on('error', (err) => {
-    console.error('[reading-companion] pg pool error:', err.message);
+    console.error('[stoa] pg pool error:', err.message);
   });
 
   return _pool;

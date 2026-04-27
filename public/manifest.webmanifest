@@ -1,13 +1,13 @@
 {
-  "name": "Reading Companion",
-  "short_name": "Companion",
-  "description": "A quiet companion for difficult texts — philosophy, science, classics, and law.",
+  "name": "Stoa — The Reading Room",
+  "short_name": "Stoa",
+  "description": "A place to think with the text. Read PDFs and EPUBs, take notes, ask questions — everything synced across your devices.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#1c1612",
-  "theme_color": "#1c1612",
+  "background_color": "#0a0e14",
+  "theme_color": "#0a0e14",
   "categories": ["books", "education", "productivity"],
   "icons": [
     {

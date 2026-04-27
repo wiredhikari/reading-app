@@ -1,19 +1,80 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Reading Companion">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Stoa — The Reading Room">
+  <!-- Background: deep midnight, the temple at night -->
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1c1612"/>
-      <stop offset="100%" stop-color="#2a1f17"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d121a"/>
+      <stop offset="100%" stop-color="#070a10"/>
     </linearGradient>
-    <linearGradient id="ink" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#dba074"/>
-      <stop offset="100%" stop-color="#b8794a"/>
+    <linearGradient id="stone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#efe7d4"/>
+      <stop offset="100%" stop-color="#d8ceb6"/>
     </linearGradient>
   </defs>
   <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <!-- subtle inner glow -->
-  <rect x="16" y="16" width="480" height="480" rx="100" fill="none" stroke="#3a2c20" stroke-width="2"/>
-  <!-- Serif "R" -->
-  <path d="M148 132 h130 c52 0 88 30 88 78 0 38 -22 64 -58 73 l74 117 h-72 l-66 -107 h-40 v107 h-56 z m56 122 h66 c22 0 36 -11 36 -31 0 -20 -14 -31 -36 -31 h-66 z" fill="url(#ink)"/>
-  <!-- Companion dot -->
-  <circle cx="378" cy="372" r="22" fill="#b8794a" opacity="0.85"/>
+
+  <!-- Acroterion (small ornament at apex) -->
+  <circle cx="256" cy="78" r="10" fill="url(#stone)"/>
+
+  <!-- Pediment (triangular roof) -->
+  <path
+    d="M76 158 L256 84 L436 158 L256 152 Z"
+    fill="url(#stone)"
+  />
+  <!-- Pediment underline (architrave top edge) -->
+  <rect x="76" y="158" width="360" height="6" fill="url(#stone)"/>
+
+  <!-- Architrave (horizontal beam with name plate) -->
+  <rect x="76" y="164" width="360" height="62" fill="#0a0e14"/>
+  <text
+    x="256" y="206"
+    text-anchor="middle"
+    font-family="Fraunces, Georgia, serif"
+    font-size="44"
+    font-weight="600"
+    letter-spacing="14"
+    fill="#c9a96e"
+  >STOA</text>
+
+  <!-- Bottom edge of architrave -->
+  <rect x="76" y="226" width="360" height="6" fill="url(#stone)"/>
+
+  <!-- Columns: 6 narrow columns. Slight taper handled by two rects per column. -->
+  <g fill="url(#stone)">
+    <!-- column 1 -->
+    <rect x="100" y="232" width="20" height="180"/>
+    <rect x="98" y="232" width="2" height="180" opacity="0.7"/>
+    <rect x="120" y="232" width="2" height="180" opacity="0.4"/>
+    <!-- column 2 -->
+    <rect x="148" y="232" width="20" height="180"/>
+    <rect x="146" y="232" width="2" height="180" opacity="0.7"/>
+    <rect x="168" y="232" width="2" height="180" opacity="0.4"/>
+    <!-- column 3 -->
+    <rect x="196" y="232" width="20" height="180"/>
+    <rect x="194" y="232" width="2" height="180" opacity="0.7"/>
+    <rect x="216" y="232" width="2" height="180" opacity="0.4"/>
+    <!-- column 4 -->
+    <rect x="296" y="232" width="20" height="180"/>
+    <rect x="294" y="232" width="2" height="180" opacity="0.7"/>
+    <rect x="316" y="232" width="2" height="180" opacity="0.4"/>
+    <!-- column 5 -->
+    <rect x="344" y="232" width="20" height="180"/>
+    <rect x="342" y="232" width="2" height="180" opacity="0.7"/>
+    <rect x="364" y="232" width="2" height="180" opacity="0.4"/>
+    <!-- column 6 -->
+    <rect x="392" y="232" width="20" height="180"/>
+    <rect x="390" y="232" width="2" height="180" opacity="0.7"/>
+    <rect x="412" y="232" width="2" height="180" opacity="0.4"/>
+  </g>
+
+  <!-- Door — the deep wine of the entrance -->
+  <rect x="220" y="248" width="72" height="164" fill="#5c1f1c"/>
+  <rect x="216" y="244" width="80" height="8" fill="url(#stone)"/>
+  <!-- Frame highlight -->
+  <rect x="220" y="248" width="2" height="164" fill="#7a2624" opacity="0.5"/>
+  <rect x="290" y="248" width="2" height="164" fill="#3a1311" opacity="0.6"/>
+
+  <!-- Stylobate (base steps) -->
+  <rect x="76" y="412" width="360" height="14" fill="url(#stone)"/>
+  <rect x="60" y="426" width="392" height="14" fill="url(#stone)" opacity="0.92"/>
+  <rect x="44" y="440" width="424" height="14" fill="url(#stone)" opacity="0.85"/>
 </svg>

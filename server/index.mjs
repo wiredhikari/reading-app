@@ -19,7 +19,7 @@ checkAuthConfig();
 try {
   await runMigrations();
 } catch (err) {
-  console.error('[reading-companion] migration failed:', err);
+  console.error('[stoa] migration failed:', err);
   if (config.isProduction && hasDatabase()) {
     console.error('  Refusing to start in production with an unusable DB.');
     process.exit(1);
@@ -30,14 +30,14 @@ try {
 const app = createApp();
 
 const server = app.listen(config.port, () => {
-  console.log(`[reading-companion] api listening on http://localhost:${config.port}`);
-  console.log(`[reading-companion] env=${config.nodeEnv}  model=${config.model}`);
-  console.log(`[reading-companion] persistence=${hasDatabase() ? 'postgres' : 'disabled'}`);
+  console.log(`[stoa] api listening on http://localhost:${config.port}`);
+  console.log(`[stoa] env=${config.nodeEnv}  model=${config.model}`);
+  console.log(`[stoa] persistence=${hasDatabase() ? 'postgres' : 'disabled'}`);
 });
 
 // Graceful shutdown
 function shutdown(signal) {
-  console.log(`[reading-companion] received ${signal}, shutting down…`);
+  console.log(`[stoa] received ${signal}, shutting down…`);
   server.close(async () => {
     await closeDb();
     process.exit(0);
