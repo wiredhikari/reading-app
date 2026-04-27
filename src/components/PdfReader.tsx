@@ -288,9 +288,19 @@ export default function PdfReader({
           setScale((prev) => (Math.abs(prev - next) > 0.01 ? next : prev));
         }
         e.preventDefault();
+      } else if (g.kind === 'swipe' && e.touches.length === 1) {
+        // If the gesture is unambiguously horizontal, preventDefault to stop
+        // iOS Safari from claiming it as the edge "swipe-back" navigation
+        // (which would yank the user out of the app). We still want vertical
+        // pans to scroll natively, so the threshold is asymmetric: a clear
+        // horizontal motion locks in, anything else falls through.
+        const t = e.touches[0];
+        const dx = t.clientX - g.startX;
+        const dy = t.clientY - g.startY;
+        if (Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy)) {
+          e.preventDefault();
+        }
       }
-      // No-op for swipe: we evaluate it on touchend so we don't disrupt
-      // vertical scroll. iOS will still scroll normally while the finger moves.
     }
 
     function onEnd(e: TouchEvent) {
@@ -340,7 +350,7 @@ export default function PdfReader({
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="reader-surface flex h-full flex-col">
       {/* Toolbar — compact on narrow screens. */}
       {!hideToolbar && (
         <div className="flex items-center gap-1.5 border-b border-[var(--color-rule)] bg-[var(--color-paper)] px-2 py-1.5 text-sm sm:gap-2 sm:px-4 sm:py-2">

@@ -157,6 +157,21 @@ body {
   overscroll-behavior: none;
 }
 
+/* Block iOS Safari's edge swipe-back gesture on the reader surfaces.
+ *
+ * `touch-action: pan-y pinch-zoom` tells the browser this element only owns
+ * vertical panning and pinch zoom — horizontal swipes are NOT a navigation
+ * gesture, so iOS won't yank the user out of the app. Our JS swipe handler
+ * still fires on touchstart/touchmove/touchend regardless of touch-action.
+ *
+ * Targeted by class so we don't disable horizontal-scroll containers
+ * elsewhere (the LibraryView list, for example, doesn't need this).
+ */
+.reader-surface,
+.reader-surface * {
+  touch-action: pan-y pinch-zoom;
+}
+
 /* Subtle warm mesh on the background — barely there but adds depth */
 body::before {
   content: "";

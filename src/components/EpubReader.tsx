@@ -185,7 +185,7 @@ export default function EpubReader({
   function prev() { renditionRef.current?.prev(); }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="reader-surface flex h-full flex-col">
       {!hideToolbar && (
         <div className="flex items-center gap-2 border-b border-[var(--color-rule)] bg-[var(--color-paper)] px-3 py-2 text-sm sm:px-4">
           <button
